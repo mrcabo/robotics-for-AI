@@ -21,9 +21,7 @@ class ActionServer(object):
         time.sleep(5)
         result = AddIntegersResult()
         result.value = goal.lhs + goal.rhs
-        r = random.random()
-        print r
-        if r <= 0.8:
+        if random.random() <= 0.8:
             self.action_server.set_succeeded(result)
         else:
             self.action_server.set_aborted(result)
