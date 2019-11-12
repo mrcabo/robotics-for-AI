@@ -30,6 +30,8 @@ add_service_files(
 add_action_files(
   FILES
   DummyAction.action
+  Example.action
+  AddIntegers.action
 )
 
 generate_messages(

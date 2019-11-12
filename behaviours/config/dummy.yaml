@@ -1,4 +1,5 @@
-main_behaviour: Dummy
+main_behaviour: Main
 sub_behaviours: 
- - DummySub1
- - DummySub2
+ - Sub1Name
+ - Sub2Wait
+ - Sub3Print

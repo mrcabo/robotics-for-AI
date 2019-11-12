@@ -6,3 +6,6 @@ class State(Enum):
     start = 1
     finished = 2
     failed = 3
+    selecting_name = 4
+    waiting = 5
+    printing = 6

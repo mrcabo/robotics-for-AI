@@ -1,0 +1,6 @@
+#goal definition
+int32 lhs
+int32 rhs
+--- # Result
+int32 value
+--- # Feedback
