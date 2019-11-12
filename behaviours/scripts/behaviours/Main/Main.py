@@ -29,6 +29,7 @@ class Main(AbstractBehaviour):
         # When sub3 finished check the alice counter and restart or finish accordingly
         elif self.state == State.printing:
             if self.sub3_print.failed():
+                print "Failed because of", self.sub3_print.failure_reason
                 self.sub3_print.start()
             elif self.sub3_print.finished():
                 self.alice_counter += self.sub3_print.name == "ALICE"
