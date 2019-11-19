@@ -6,3 +6,4 @@ class State(Enum):
     start = 1
     finished = 2
     failed = 3
+    navigating = 4
