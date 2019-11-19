@@ -1,0 +1,2 @@
+test_node: "rosrun testing testing_node"
+test_python_node: "roslaunch testing testing_python.launch"

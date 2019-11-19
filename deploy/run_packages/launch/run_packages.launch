@@ -1,0 +1,7 @@
+<launch>
+  <arg name="file" />
+
+  <node name="run_packages" pkg="run_packages" type="run_packages.py" output="screen" >
+    <param name="file" value="$(arg file)" />
+  </node>
+</launch>
