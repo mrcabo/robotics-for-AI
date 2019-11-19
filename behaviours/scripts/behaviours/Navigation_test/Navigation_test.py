@@ -4,7 +4,12 @@ import rospy
 import yaml
 import os
 class Navigation_test(AbstractBehaviour):
-    
+    """
+    rosservice call /move_head "pitch: 0.6
+    yaw: 0.0"
+
+    rosservice call /move_base/clear_costmaps
+    """
     def init(self):
         print(os.getcwd())
         self.navigation_sub = self.get_behaviour('NavigationSub')
