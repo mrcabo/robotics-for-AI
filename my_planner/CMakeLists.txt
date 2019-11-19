@@ -61,20 +61,20 @@ include_directories(
 
 add_dependencies(global_planner_lib my_planner_generate_messages_cpp)
 
-install (PROGRAMS
-	scripts/dijkstra_planning.py
-	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#install (PROGRAMS
+#	scripts/dijkstra_planning.py
+#	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
-install(TARGETS global_planner_lib
-	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#install(TARGETS global_planner_lib
+#	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
-install(FILES
-	global_planner_plugin.xml
+#install(FILES
+#	global_planner_plugin.xml
 	#maps/my_map.yaml
 	#maps/my_map.png
-	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
+	#	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+	#)
