@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import rospy
-from my_msgs.srv import MakePlan, MakePlanResponse
+from my_planner.srv import MakePlan, MakePlanResponse
 import numpy as np
 import heapq
 import math
