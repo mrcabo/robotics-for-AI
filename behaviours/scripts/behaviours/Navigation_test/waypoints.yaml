@@ -1,0 +1,9 @@
+window_table:
+  orientation: {x: 0, y: 0, z: 0.7, w: 0.7}
+  pos: {x: 0.002, y: 1.08}
+wall_table:
+  orientation: {x: 0, y: 0, z: 0.05, w: 1}
+  pos: {x: 0.12, y: 0.08}
+other_table:
+  orientation: {x: 0, y: 0, z: -0.68, w: 0.73}
+  pos: {x: -0.12, y: -1.24}

@@ -9,30 +9,31 @@ import rospy
 class NavigationSub(AbstractBehaviour):
     
     def init(self):
-        self.pos = None
-        self.orientation = None
+        # Connect to the action server
         if not hasattr(self, 'client'):
             self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         print 'Connecting to server'
         self.client.wait_for_server()
         print 'Connected to the server'
 
+        self.pos = None
+        self.orientation = None
+
     def update(self):
+        # When mode is start build a message and send it to the action server
         if self.state == State.start:
             self.client.send_goal(self.build_goal_message())
             self.set_state(State.navigating)
-
+        # While navigating, keep polling the action server for statuses
         elif self.state == State.navigating:
             client_state = self.client.get_state()
             if client_state == actionlib.GoalStatus.SUCCEEDED:
-                result = self.client.get_result()
-                print('Navigation completed, with ressult %s' % result)
+                print('Navigation completed')
                 self.finish()
             elif client_state == actionlib.GoalStatus.ABORTED:
-                result = self.client.get_result()
-                print('Navigation failed with result %s' % result)
-                self.fail(reason="Action server returned ABORTED status with result %s" % result)
-    
+                print('Navigation failed')
+                self.fail(reason="Action server returned ABORTED status")
+
     def reset(self):
         self.state = State.idle
         self.init()
