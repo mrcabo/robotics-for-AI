@@ -1,0 +1,4 @@
+head_controller: "roslaunch head_controller head_controller.launch robot:=tiago"
+approach: "rosrun approach approach_node"
+base_control_server: "roslaunch base_control_server base_control_server.launch robot:=tiago"
+point_cloud_functions: "roslaunch point_cloud_functions point_cloud_functions.launch robot:=tiago"
