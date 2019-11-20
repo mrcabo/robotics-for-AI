@@ -6,21 +6,36 @@ import heapq as hq
 import math
 from itertools import count
 
-
+diagonal_distance = 2 ** .5
 class Dijkstra(object): 
     
     def __init__(self):
         self.make_plan_service = rospy.Service("/move_base/GlobalPlannerPython/make_plan", MakePlan, self.make_plan)
 
     @staticmethod
+    def idx_to_coord(idx, map_width):
+        return idx % map_width, idx // map_width
+
+    @staticmethod
+    def coord_to_idx(x, y, map_width):
+        return y * map_width + x
+
+    @staticmethod
     def retrieve_neighbours(current_index, map_width, map_height):
-        current_x, current_y = (current_index % map_width, current_index // map_width)
+        x, y = Dijkstra.idx_to_coord(current_index, map_width)
 
-        check_coords = lambda x, y: 0 <= x < map_width and 0 <= y < map_height and not (x == current_x and y == current_y)
-        coord_to_idx = lambda x, y: y * map_width + x
+        orthogonal_neighbours = []
+        diagonal_neighbours = []
+        for d_x in [-1, 0, 1]:
+            for d_y in [-1, 0, 1]:
+                if 0 <= (x + d_x) < map_width and 0 <= (y + d_y) < map_height and not ((x + d_x) == x and (y + d_y) == y):
+                    neighbour_idx = Dijkstra.coord_to_idx(x + d_x, y + d_y, map_width)
+                    if 0 in [d_x, d_y]:
+                        orthogonal_neighbours.append(neighbour_idx)
+                    else:
+                        diagonal_neighbours.append(neighbour_idx)
 
-        return [coord_to_idx(current_x + x_diff, current_y + y_diff) for x_diff in [-1, 0, 1] for y_diff in [-1, 0, 1]
-                if check_coords(current_x + x_diff, current_y + y_diff)]
+        return orthogonal_neighbours, diagonal_neighbours
 
     def calculate_path_with_dijkstra(self, start_index, goal_index, map_width, map_height, costmap):
         """
@@ -62,10 +77,13 @@ class Dijkstra(object):
 
             explored[current_index] = parent_index
 
-            neighbours = self.retrieve_neighbours(current_index, map_width, map_height)
+            orth_neighbours, diag_neighbours = self.retrieve_neighbours(current_index, map_width, map_height)
             # print("For %d there are %d neigbours" % (current_index, len(neighbours)))
-            for neighbour_idx in neighbours:
-                n_cost = 1 + costmap[neighbour_idx] + distance
+            neighbours = zip(orth_neighbours, [False] * len(orth_neighbours)) + \
+                         zip(diag_neighbours, [True] * len(diag_neighbours))
+
+            for neighbour_idx, diagonal in neighbours:
+                n_cost = costmap[neighbour_idx] + distance + (diagonal_distance if diagonal else 1)
                 if neighbour_idx in enqueued:
                     q_cost = enqueued[neighbour_idx]
                     if q_cost <= n_cost:

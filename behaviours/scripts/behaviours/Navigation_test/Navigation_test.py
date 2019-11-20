@@ -13,7 +13,7 @@ class Navigation_test(AbstractBehaviour):
     def init(self):
         print(os.getcwd())
         self.navigation_sub = self.get_behaviour('NavigationSub')
-        with open('/home/group9/catkin_ws/src/behaviours/scripts/behaviours/Navigation_test/waypoints.yaml', 'r') as f:
+        with open('/home/group9/catkin_ws/src/behaviours/scripts/behaviours/Navigation_test/simple_waypoints.yaml', 'r') as f:
             self.poses = yaml.load(f)
         self.waypoints = self.poses.keys()
         self.current_goal = 0
