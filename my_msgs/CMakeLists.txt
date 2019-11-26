@@ -30,6 +30,7 @@ add_service_files(
 add_action_files(
   FILES
   DummyAction.action
+  ClassificationAction.action
 )
 
 generate_messages(

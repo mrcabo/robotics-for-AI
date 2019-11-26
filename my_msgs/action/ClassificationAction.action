@@ -1,0 +1,6 @@
+#goal definition
+string start_signal
+---
+#result definition
+string[] object_classifications
+---
