@@ -1,3 +1,5 @@
+import time
+
 import actionlib
 
 from utils.state import State
@@ -22,7 +24,11 @@ class NavigationSub(AbstractBehaviour):
     def update(self):
         # When mode is start build a message and send it to the action server
         if self.state == State.start:
-            self.client.send_goal(self.build_goal_message())
+            goal = self.build_goal_message()
+            time.sleep(2)
+            self.client.send_goal(goal)
+            time.sleep(2)
+            self.client.send_goal(goal)
             self.set_state(State.navigating)
         # While navigating, keep polling the action server for statuses
         elif self.state == State.navigating:
