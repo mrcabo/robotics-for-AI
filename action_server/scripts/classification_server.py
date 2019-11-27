@@ -136,6 +136,9 @@ class ActionServer(object):
 
 
 if __name__ == '__main__':
+    """
+    Setup these folder on home network_model/ and saved_images/
+    """
     rospy.init_node('classification_server')
     server = ActionServer()
     rospy.spin()
