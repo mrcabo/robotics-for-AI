@@ -76,7 +76,7 @@ class ActionServer(object):
 
     def save_images(self, scaled_images, predictions, predicted_class_names):
         for idx, image, prediction, class_name in zip(range(scaled_images.shape[0]), scaled_images, predictions, predicted_class_names):
-            filename = "{}_{}_{:.2f}.jpg".format(class_name, idx, max(prediction) * 100)
+            filename = "{}_{}_{:.2f}.jpg".format(idx, class_name, max(prediction) * 100)
             cv2.imwrite(os.path.join(self.image_save_path, filename), (image * 255).astype('int'))
 
     def predict_one_roi(self, image, roi):
@@ -97,11 +97,16 @@ class ActionServer(object):
                 temp_roi.bottom += d_y
                 cropped_and_scaled_images.append(self.cut_and_scale(image, temp_roi))
         cropped_and_scaled_images = np.array(cropped_and_scaled_images)
+        # self.save_images(cropped_and_scaled_images, [[roi.left, 0]] * 9, [roi.right] * 9)
 
-        #self.save_images(cropped_and_scaled_images, [[roi.left, 0]] * 9, [roi.right] * 9)
         # Predict for all 9 cutouts
         prediction = self.model.predict(cropped_and_scaled_images)
-        return np.average(prediction, axis=0)
+
+        hist = np.zeros(len(self.class_names))
+        for p in prediction:
+            hist[np.argmax(p)] += 1
+        hist /= 9.
+        return hist
 
     def callback(self, goal):
         # Retrieve image from image topic
