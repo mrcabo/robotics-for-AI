@@ -114,16 +114,6 @@ def create_augmented_dataset(data, labels, rois, offset=20):
     return np.array(augmented_data), np.array(augmented_labels)
 
 
-# def split_train_test(data, labels, split=0.9):
-#     length = data.shape[0]
-#     permutation = np.random.permutation(length)
-#     data = data[permutation]
-#     labels = labels[permutation]
-#
-#     split_idx = int(length*split)
-#     return data[:split_idx], labels[:split_idx], data[split_idx:], labels[split_idx:]
-
-
 def split_train_test(split=0.8, path='.'):
     data, labels, rois = load_from_npy(path=path)
     # print(data.shape, labels.shape, rois.shape)

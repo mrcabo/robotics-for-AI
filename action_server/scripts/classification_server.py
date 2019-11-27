@@ -55,6 +55,14 @@ class ActionServer(object):
 
     @staticmethod
     def cut_and_scale(image, roi, size=64):
+        # clip the rois to image width/height
+        width = image.shape[1]
+        height = image.shape[0]
+        roi.top = min(max(0, roi.top), height)
+        roi.bottom = min(max(0, roi.bottom), height)
+        roi.left = min(max(0, roi.left), width)
+        roi.right = min(max(0, roi.right), width)
+
         # cut
         image_crop = image[roi.top:roi.bottom, roi.left:roi.right]
         # scale
@@ -83,6 +91,7 @@ class ActionServer(object):
         # Define the shift off roi
         roi_width = abs(roi.right - roi.left)
         roi_height = abs(roi.top - roi.bottom)
+        print("roi width/height %d/%d" % (roi_width, roi_height))
         x_diffs = [-(roi_width // 5), 0, (roi_width // 5)]
         y_diffs = [-(roi_height // 5), 0, (roi_height // 5)]
 

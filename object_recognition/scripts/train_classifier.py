@@ -28,17 +28,13 @@ def load_data():
 
 
 def create_model():
-    # Create a NN, just for testing
-    # model = tf.keras.models.Sequential([
-    #   tf.keras.layers.Flatten(input_shape=(64, 64, 3)),
-    #   tf.keras.layers.Dense(128, activation='relu'),
-    #   tf.keras.layers.Dropout(0.33),
-    #   tf.keras.layers.Dense(7, activation='softmax')
-    # ])
-
     model = tf.keras.models.Sequential([
         tf.keras.layers.Conv2D(16, kernel_size=3, activation='relu', input_shape=(64, 64, 3)),
+        tf.keras.layers.BatchNormalization(axis=3),
+        tf.keras.layers.MaxPool2D(),
         tf.keras.layers.Conv2D(8, kernel_size=3, activation='relu'),
+        tf.keras.layers.BatchNormalization(axis=3),
+        tf.keras.layers.MaxPool2D(),
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(128, activation='relu'),
         tf.keras.layers.Dropout(0.4),
@@ -49,20 +45,21 @@ def create_model():
                   loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
 
+    print(model.summary())
     return model
 
 
-def plot_one_split():
+def plot_one_split(epochs=10, save_model=False):
     x_train, y_train, x_test, y_test = load_data()
     model = create_model()
     # When calling the fit function, it returns a history object
     # We give it a specific validation set (in this case the mnist test data)
-    history = model.fit(x_train, y_train, batch_size=128, validation_data=(x_test, y_test), epochs=3,  verbose=1,
+    history = model.fit(x_train, y_train, batch_size=128, validation_data=(x_test, y_test), epochs=epochs,  verbose=1,
                         shuffle=True, workers=0)
 
-    path = os.path.join(os.environ['HOME'], 'network_model')
-
-    model.save(os.path.join(path, "16_8_128_7_convnet.h5"))
+    if save_model:
+        path = os.path.join(os.environ['HOME'], 'network_model')
+        model.save(os.path.join(path, "16_8_128_7_convnet.h5"))
 
     # plot the training accuracy
     plt.plot(history.history['accuracy'])
@@ -89,7 +86,7 @@ def plot_one_split():
     plt.show()
 
 
-def cross_validate(n_splits=4):
+def cross_validate(epochs=10, n_splits=4):
     x_train, y_train, x_test, y_test = load_data()
     kfold = StratifiedKFold(n_splits=n_splits, shuffle=True)
     test_scores = []
@@ -97,7 +94,7 @@ def cross_validate(n_splits=4):
     for train_idxs, test_idxs in kfold.split(x_train, y_train):
         model = create_model()
         history = model.fit(x_train[train_idxs], y_train[train_idxs], batch_size=128, validation_data=(x_test, y_test),
-                            epochs=5, verbose=0, shuffle=True, workers=0)
+                            epochs=epochs, verbose=0, shuffle=True, workers=0)
         scores = model.evaluate(x_train[test_idxs], y_train[test_idxs], verbose=0, workers=0)
         print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
         cvscores.append(scores[1] * 100)
@@ -119,8 +116,9 @@ def cross_validate(n_splits=4):
 
     # print("%.2f%% (+/- %.2f%%)" % (np.mean(cvscores), np.std(cvscores)))
 
+
 # cross_validate()
-plot_one_split()
+plot_one_split(epochs=9, save_model=True)
 
 # Cross validation
-# cross_validate()
+# cross_validate(epochs=9)
