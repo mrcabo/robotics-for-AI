@@ -83,14 +83,14 @@ def cut_and_scale(image, rois, size=64):
     return scaled
 
 
-def augment(image, rois, size=64, show_img=False):
+def augment(image, rois, flip, size=64, show_img=False):
     scaled = cut_and_scale(image, rois, size)
+    # Rotation
+    flipped = cv2.flip(scaled, flipCode=1) if flip else scaled
     # random hsv value change
-    brightness_adjusted = random_brightness_change(scaled)
+    brightness_adjusted = random_brightness_change(flipped)
     # add some pepper noise
     pepper_noised = salt_and_pepper(brightness_adjusted)
-    # Rotation
-
     if show_img:
         cv2.imshow('test', pepper_noised)
         cv2.waitKey(0)
@@ -105,10 +105,11 @@ def create_augmented_dataset(data, labels, rois, offset=20):
     for image, label, roi in zip(data, labels, rois):
         for d_x in diffs:
             for d_y in diffs:
-                temp_roi = [roi[0] + d_y + random_part(), roi[1] + d_y + random_part(), roi[2] + d_x + random_part(),
-                            roi[3] + d_x + random_part()]
-                augmented_data.append(augment(image, temp_roi))
-                augmented_labels.append(label)
+                for flipped in [False, True]:
+                    temp_roi = [roi[0] + d_y + random_part(), roi[1] + d_y + random_part(), roi[2] + d_x + random_part(),
+                                roi[3] + d_x + random_part()]
+                    augmented_data.append(augment(image, temp_roi, flip=flipped))
+                    augmented_labels.append(label)
 
     return np.array(augmented_data), np.array(augmented_labels)
 
@@ -125,7 +126,7 @@ def create_augmented_dataset(data, labels, rois, offset=20):
 
 def split_train_test(split=0.8, path='.'):
     data, labels, rois = load_from_npy(path=path)
-    print(data.shape, labels.shape, rois.shape)
+    # print(data.shape, labels.shape, rois.shape)
 
     x_train = []
     y_train = []

@@ -9,11 +9,14 @@ from cv_bridge import CvBridge
 from my_msgs.msg import ClassificationActionAction, ClassificationActionResult
 from point_cloud_functions.srv import GetObjectROI, GetObjectROIRequest
 from sensor_msgs.msg import Image
+import cv2
 
 
 class ActionServer(object):
     image_topic = "xtion/rgb/image_raw"
-    path = os.path.join(os.environ['HOME'], 'network_model', '16_8_128_7_convnet.h5')
+    model_path = os.path.join(os.environ['HOME'], 'network_model', '16_8_128_7_convnet.h5')
+    image_save_path = os.path.join(os.environ['HOME'], 'saved_images')
+    input_size = (64, 64)
     class_names = ["crazyflie", "erazer_box", "evergreen", "jetson", "powerbank", "raspicam", "whitebox"]
 
     def __init__(self):
@@ -23,8 +26,8 @@ class ActionServer(object):
             execute_cb=self.callback,
             auto_start=False
         )
+        self.model = tf.keras.models.load_model(self.model_path)
         self.action_server.start()
-        self.model = tf.keras.models.load_model(self.path)
 
     @staticmethod
     def requestROI():
@@ -50,32 +53,72 @@ class ActionServer(object):
         request.leaf_size = 0.01
         return cl(request)  ## makes the request and returns the response
 
-    def get_cropped_images(self):
+    @staticmethod
+    def cut_and_scale(image, roi, size=64):
+        # cut
+        image_crop = image[roi.top:roi.bottom, roi.left:roi.right]
+        # scale
+        scaled = cv2.resize(image_crop, (size, size))
+        return scaled
+
+    def get_rois(self):
         rois = self.requestROI()
+        object_rois = sorted(copy(rois.object_rois), key=lambda r: r.left)
+        print('Number of ROIs: {}'.format(len(object_rois)))
+        return object_rois
+
+    def get_image(self):
         bridge = CvBridge()
         image_msg = rospy.wait_for_message(self.image_topic, Image)
         image = bridge.imgmsg_to_cv2(image_msg, "bgr8")
         image = image.astype(np.float32) / 255.
+        return image
 
-        return np.array([copy(image[roi.top:roi.bottom, roi.left:roi.right]) for roi in rois.object_rois])
-        # for roi in rois.object_rois:
-        #     left = roi.left  ## x coordinate
-        #     right = roi.right  ## x coordinate
-        #     top = roi.top  ## y coordinate
-        #     bottom = roi.bottom  ## y coordinate
-        #     # print '(', left, ', ', top, ')', '(', right, ', ', bottom, ')'
-        #     cropped_images.append(copy(image[top:bottom, left:right]))
-        # return np.array(cropped_images)
+    def save_images(self, scaled_images, predictions, predicted_class_names):
+        for idx, image, prediction, class_name in zip(range(scaled_images.shape[0]), scaled_images, predictions, predicted_class_names):
+            filename = "{}_{}_{:.2f}.jpg".format(class_name, idx, max(prediction) * 100)
+            cv2.imwrite(os.path.join(self.image_save_path, filename), (image * 255).astype('int'))
+
+    def predict_one_roi(self, image, roi):
+        # Define the shift off roi
+        roi_width = abs(roi.right - roi.left)
+        roi_height = abs(roi.top - roi.bottom)
+        x_diffs = [-(roi_width // 5), 0, (roi_width // 5)]
+        y_diffs = [-(roi_height // 5), 0, (roi_height // 5)]
+
+        # Cutout this roi and the area around it 9 times
+        cropped_and_scaled_images = []
+        for d_x in x_diffs:
+            for d_y in y_diffs:
+                temp_roi = copy(roi)
+                temp_roi.left += d_x
+                temp_roi.right += d_x
+                temp_roi.top += d_y
+                temp_roi.bottom += d_y
+                cropped_and_scaled_images.append(self.cut_and_scale(image, temp_roi))
+        cropped_and_scaled_images = np.array(cropped_and_scaled_images)
+
+        #self.save_images(cropped_and_scaled_images, [[roi.left, 0]] * 9, [roi.right] * 9)
+        # Predict for all 9 cutouts
+        prediction = self.model.predict(cropped_and_scaled_images)
+        return np.average(prediction, axis=0)
 
     def callback(self, goal):
-        cropped_images = self.get_cropped_images()
-        print(cropped_images.shape)
-        predictions = self.model.predict(cropped_images)
-        print(predictions.shape)
+        # Retrieve image from image topic
+        image = self.get_image()
+        # Get regions of interest using the pointclouds
+        rois = self.get_rois()
+        # Average over 9 prediction made on an area around th roi
+        predictions = [self.predict_one_roi(image, roi) for roi in rois]
+        # predictions -> class names
+        predicted_class_names = [self.class_names[np.argmax(prediction)] for prediction in predictions]
+        # Save the final classification
+        self.save_images(np.array([self.cut_and_scale(image, roi) for roi in rois]), predictions, predicted_class_names)
+
+        # Build the result message
         result = ClassificationActionResult()
-        result.object_classifications = [self.class_names[np.argmax(prediction)] for prediction in predictions]
+        result.object_classifications = predicted_class_names
         self.action_server.set_succeeded(result)
-        # self.action_server.set_aborted(result)
 
 
 if __name__ == '__main__':

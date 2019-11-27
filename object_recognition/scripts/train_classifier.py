@@ -57,7 +57,8 @@ def plot_one_split():
     model = create_model()
     # When calling the fit function, it returns a history object
     # We give it a specific validation set (in this case the mnist test data)
-    history = model.fit(x_train, y_train, batch_size=128, validation_data=(x_test, y_test), epochs=3,  verbose=1, shuffle=True)
+    history = model.fit(x_train, y_train, batch_size=128, validation_data=(x_test, y_test), epochs=3,  verbose=1,
+                        shuffle=True, workers=0)
 
     path = os.path.join(os.environ['HOME'], 'network_model')
 
@@ -96,12 +97,12 @@ def cross_validate(n_splits=4):
     for train_idxs, test_idxs in kfold.split(x_train, y_train):
         model = create_model()
         history = model.fit(x_train[train_idxs], y_train[train_idxs], batch_size=128, validation_data=(x_test, y_test),
-                            epochs=10, verbose=0, shuffle=True)
-        scores = model.evaluate(x_train[test_idxs], y_train[test_idxs], verbose=0)
+                            epochs=5, verbose=0, shuffle=True, workers=0)
+        scores = model.evaluate(x_train[test_idxs], y_train[test_idxs], verbose=0, workers=0)
         print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
         cvscores.append(scores[1] * 100)
 
-        test_score = model.evaluate(x_test, y_test, verbose=0)
+        test_score = model.evaluate(x_test, y_test, verbose=0, workers=0)
         print("test_%s: %.2f%%" % (model.metrics_names[1], test_score[1] * 100))
         test_scores.append(test_score[1] * 100)
         del model
