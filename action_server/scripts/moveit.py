@@ -11,7 +11,6 @@ import tf
 import math
 import numpy as np
 
-
 class MoveIt(object):
 
     def __init__(self, robot_name="alice"):
@@ -47,16 +46,34 @@ class MoveIt(object):
         moveit_commander.roscpp_shutdown()
         moveit_commander.os._exit(0)
 
+    @staticmethod
+    def create_pose_stamped(x, y, z, quaternion):
+        pose = PoseStamped()
+        pose.header.stamp = rospy.Time.now()
+        pose.header.frame_id = "base_link"
+        pose.pose.position.x = x
+        pose.pose.position.y = y
+        pose.pose.position.z = z
+
+        pose.pose.orientation.x = quaternion[0]
+        pose.pose.orientation.y = quaternion[1]
+        pose.pose.orientation.z = quaternion[2]
+        pose.pose.orientation.w = quaternion[3]
+
+        return pose
+
     def add_collision_object(self, x, y, z, rotation, box_size=[0, 0, 0]):
         # In case the object is still in the scene, remove it
         self.scene.remove_world_object(self.object_name)
         self.scene.remove_attached_object(self.end_effector_link, self.object_name)
         rospy.sleep(1)  # Making sure the object is removed
 
-        q = quaternion_from_euler(math.pi, 0.0, rotation)
         # Create a PoseStamped message, for the header.frame_id use "base_link"
+        q = quaternion_from_euler(math.pi, 0.0, rotation)
+        pose = self.create_pose_stamped(x, y, z, q)
 
         # use self.scene to add the collision box to the scene
+        self.scene.add_box(self.object_name, pose, box_size)
 
         rospy.sleep(1.0)  # Give it time to recreate the OctoMap
 
@@ -64,7 +81,7 @@ class MoveIt(object):
         joint_trajectory = JointTrajectory()
         joint_trajectory.header.stamp = rospy.get_rostime()
 
-        if self.robot_name == "taigo":
+        if self.robot_name == "tiago":
             joint_trajectory.joint_names = ["gripper_left_finger_joint", "gripper_right_finger_joint"]
         else:
             joint_trajectory.joint_names = ["m1n6s200_joint_finger_1", "m1n6s200_joint_finger_2"]
@@ -128,6 +145,18 @@ class MoveIt(object):
 
         return gripper_translation
 
+    def create_grasp(self, id, x, y, z, q, width):
+        grasp = Grasp()
+        grasp.id = id
+
+        grasp.grasp_pose = self.create_pose_stamped(x, y, z, q)
+        grasp.pre_grasp_approach = self._make_gripper_translation_approach()
+        grasp.post_grasp_retreat = self._make_gripper_translation_retreat()
+        grasp.pre_grasp_posture = self._open_gripper()
+        grasp.grasp_posture = self._close_gripper(width=width - 0.005)
+
+        return grasp
+
     def _create_grasps(self, x, y, z, rotation, z_max, width=None):
         grasps = []  # append Grasp messages to this list
 
@@ -139,6 +168,8 @@ class MoveIt(object):
 
         # Create different Grasp messages
         # For the grasp_pose.header.frame_id use "base_link"
+        for i, possible_z in enumerate(np.linspace(z, z_max, num=10)):
+            grasps.append(self.create_grasp(str(i), x, y, possible_z, q, width))
 
         print "Nr of grasps:", len(grasps)
         return grasps

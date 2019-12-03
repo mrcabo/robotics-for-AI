@@ -46,19 +46,33 @@ class ActionServer(object):
 
         if len(bounding_boxes) == 0:
             self.action_server.set_aborted()
+            return
         else:
             selected_bounding_box = bounding_boxes[0]
 
 
         move_it = MoveIt('tiago')
+
+        # Add a precise collision box to the octomap
         move_it.add_collision_object(
-            selected_bounding_box.x,
-            selected_bounding_box.y,
-            selected_bounding_box.z,
-            selected_bounding_box.angle,
-            [selected_bounding_box.width, selected_bounding_box.height, selected_bounding_box.length]
+            x=selected_bounding_box.x,
+            y=selected_bounding_box.y,
+            z=selected_bounding_box.z,
+            rotation=selected_bounding_box.yaw,
+            box_size=[selected_bounding_box.length, selected_bounding_box.width, selected_bounding_box.height]
         )
 
+        # Close the fingers
+        move_it.close_fingers()
+
+        move_it.grasp(
+            x=selected_bounding_box.x,
+            y=selected_bounding_box.y,
+            z=selected_bounding_box.z,
+            rotation=selected_bounding_box.yaw,
+            z_max=selected_bounding_box.z + selected_bounding_box.height / 2,
+            width=selected_bounding_box.width
+        )
 
 
         result = GraspResult()
