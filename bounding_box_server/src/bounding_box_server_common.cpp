@@ -74,6 +74,10 @@ void BoundingBoxServer::projectPointCloudOnPlane(PointCloudPtr point_cloud, Poin
   - Set the coefficients, coefficients
   - Filter the point cloud, use *project_point_cloud
   */
+  project_inliers_.setInputCloud(point_cloud);
+  project_inliers_.setModelType (pcl::SACMODEL_PLANE);
+  project_inliers_.setModelCoefficients (coefficients);
+  project_inliers_.filter (*projected_point_cloud);
 }
 
 //! Get the eigen vectors of a Point Cloud.
@@ -93,6 +97,8 @@ Eigen::Matrix3f BoundingBoxServer::getEigenVectors(PointCloudPtr point_cloud) {
   - Set the input cloud, point_cloud
   - return the eigenvectors 
   */
+  pca_.setInputCloud(point_cloud);
+  return pca_.getEigenVectors();
 }
 
 //! Get the angle between the eigen vector and a (1,0) vector.
@@ -105,7 +111,12 @@ float BoundingBoxServer::getAngle(Eigen::Vector3f eigen_vector) {
   Eigen::Vector2f object_vector = eigen_vector.head<2>(); // Only use x and y
   Eigen::Vector2f base_link_vector;
   base_link_vector << 1.0f, 0.0f; // x = 1.0, y = 0.0, pointing forwards
-
+  float dotProduct = object_vector.dot(base_link_vector);
+  Eigen::Matrix2f matrix;
+  matrix << base_link_vector.x(), object_vector.x(),
+            base_link_vector.y(), object_vector.y();
+  float determinant = matrix.determinant();
+  return atan2(determinant, dotProduct);
   /* 
   return the angle between the object_vector and base_link_vector
   */
@@ -132,6 +143,11 @@ Eigen::Vector3f BoundingBoxServer::getCenterPointCloud(PointCloudPtr point_cloud
 
   return the centroid_vector
   */
+  Point min, max;
+  pcl::getMinMax3D(*point_cloud, min, max);
+  Eigen::Vector3f centroid_vector;
+  centroid_vector << min.x + (max.x - min.x) / 2, min.y + (max.y - min.y) / 2, min.z + (max.z - min.z) / 2;
+  return centroid_vector;
 }
 
 //! Transforms a given Point Cloud to the origin, including rotation.
@@ -172,4 +188,9 @@ void BoundingBoxServer::getDimensions(PointCloudPtr point_cloud, bounding_box_se
   assign the width, y axis, to bounding_box.width
   assign the height, z axis, to bounding_box.height
   */
+  Point min, max;
+  pcl::getMinMax3D(*point_cloud, min, max);
+  bounding_box.length = max.x - min.x;
+  bounding_box.width = max.y - min.y;
+  bounding_box.height = max.z - min.z;
 }

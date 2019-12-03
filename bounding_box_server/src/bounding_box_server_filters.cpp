@@ -29,10 +29,10 @@ void BoundingBoxServer::passThroughFilter(PointCloudPtr point_cloud, PointCloudP
  */
 void BoundingBoxServer::removeTable(PointCloudPtr point_cloud, PointCloudPtr tableless_point_cloud, float distance_threshold) {
   pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());  // Needed for the segmentiation
-  pcl::PointIndices::Ptr inliers(new pcl::PointIndices());                 // Needed for the segmentation 
+  pcl::PointIndices::Ptr inliers(new pcl::PointIndices());                 // Needed for the segmentation
 
   /*
-  sac_segmentation_ is a pcl::SACSegmentation<Point> class object, 
+  sac_segmentation_ is a pcl::SACSegmentation<Point> class object,
   http://docs.pointclouds.org/trunk/classpcl_1_1_s_a_c_segmentation.html
 
   Which inherits the PCLBase class
@@ -44,10 +44,27 @@ void BoundingBoxServer::removeTable(PointCloudPtr point_cloud, PointCloudPtr tab
   - Set the model type to pcl::SACMODEL_PLANE
   - Segment using the inliers and coefficients objects (they are pointers so use a * before the name)
     Whilst both parameters are required, only inliers will be used later
-    The inliers object should now contain all the indexes of the points that are part of the table 
+    The inliers object should now contain all the indexes of the points that are part of the table
   */
 
-  /* 
+  // Optional
+  //sac_segmentation_.setOptimizeCoefficients (true);
+
+  // Mandatory
+  sac_segmentation_.setModelType (pcl::SACMODEL_PLANE);
+  sac_segmentation_.setMethodType (pcl::SAC_RANSAC);
+  sac_segmentation_.setDistanceThreshold (distance_threshold);
+
+  sac_segmentation_.setInputCloud (point_cloud);
+  sac_segmentation_.segment (*inliers, *coefficients);
+
+  if (inliers->indices.size () == 0)
+  {
+    PCL_ERROR ("Could not estimate a planar model for the given dataset.");
+    return;
+  }
+
+  /*
   extract_indices_ is a pcl::ExtractIndices<Point> class object,
   http://docs.pointclouds.org/trunk/classpcl_1_1_extract_indices.html
 
@@ -57,11 +74,15 @@ void BoundingBoxServer::removeTable(PointCloudPtr point_cloud, PointCloudPtr tab
   http://docs.pointclouds.org/trunk/classpcl_1_1_filter_indices.html
 
   - You need to set the input point cloud
-  - You need to set the indicies 
+  - You need to set the indicies
   - You need to set whether the to keep the indices, or remove the indices from the point cloud
   - Filter the point cloud, and write the new point cloud to *tableless_point_cloud
-
   */
+
+  extract_indices_.setInputCloud (point_cloud);
+  extract_indices_.setIndices (inliers);
+  extract_indices_.setNegative (true);
+  extract_indices_.filter (*tableless_point_cloud);
 }
 
 //! Given a Point Cloud, extract the clusters as seperate Point Clouds.
@@ -77,34 +98,40 @@ void BoundingBoxServer::extractClusters(PointCloudPtr point_cloud, std::vector<P
 
   std::vector<pcl::PointIndices> cluster_indices; // vector for storing the indices for each cluster
 
+  //cluster_extraction_ is a pcl::EuclideanClusterExtraction<Point> class object,
+
+  //  - Set the input point cloud, point_cloud
+  cluster_extraction_.setInputCloud (point_cloud);
+  //  - Set the search method, search_tree
+  cluster_extraction_.setSearchMethod (search_tree);
+  //  - Set the cluster tolerance, cluster_tolerance
+  cluster_extraction_.setClusterTolerance (cluster_tolerance); // 0.02 is 2 cm
+  //  - Set the min and max cluster sizes, I recommend between 10 and 50000
+  cluster_extraction_.setMinClusterSize (10);
+  cluster_extraction_.setMaxClusterSize (50000);
+  //  - Extract the clusters with the parameter, cluster_indices
+  cluster_extraction_.extract (cluster_indices);
+  //    cluster_indices is now a vector, where each items is another vector of all the indices that belong to a single cluster
+
+
   /*
-  cluster_extraction_ is a pcl::EuclideanClusterExtraction<Point> class object,
-  http://docs.pointclouds.org/1.9.1/classpcl_1_1_euclidean_cluster_extraction.html
-
-  which inherits the PCLBase class,
-  http://docs.pointclouds.org/1.9.1/classpcl_1_1_p_c_l_base.html
-
-  - Set the input point cloud, point_cloud
-  - Set the search method, search_tree
-  - Set the cluster tolerance, cluster_tolerance
-  - Set the min and max cluster sizes, I recommend between 10 and 50000
-  - Extract the clusters with the parameter, cluster_indices
-
-    cluster_indices is now a vector, where each items is another vector of all the indices that belong to a single cluster
-  */
-
-  /*
-  for each cluster in cluster_indices, do 
+  for each cluster in cluster_indices, do
     - create a new point cloud ptr, PointCloudPtr cluster_cloud(new PointCloud())
 
-    for each index value of the PointIndices, do 
+    for each index value of the PointIndices, do
       - add the point at position index, from the point_cloud, to the cluster_cloud.
-      You can access the points via e.g. point_cloud->points, points is a vector, from which you can get an item via index, points[index], 
+      You can access the points via e.g. point_cloud->points, points is a vector, from which you can get an item via index, points[index],
       or add a new item at the back, points.push_back(point)
 
     Add the newly create cluster_cloud to the clusters vector (parameter for the function), use push_back
   */
- 
+  for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it) {
+    PointCloudPtr cluster_cloud(new PointCloud());
+    for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
+      cluster_cloud->points.push_back (point_cloud->points[*pit]); //*
+    // Maybe we need to set with, height and is_dense read: http://pointclouds.org/documentation/tutorials/cluster_extraction.php
+    clusters.push_back(cluster_cloud);
+  }
 }
 
 //! Voxelizes the Point Cloud.
