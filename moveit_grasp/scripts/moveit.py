@@ -63,7 +63,7 @@ class MoveIt(object):
     joint_trajectory = JointTrajectory()
     joint_trajectory.header.stamp = rospy.get_rostime()
 
-    if self.robot_name == "taigo":
+    if self.robot_name == "tiago":
       joint_trajectory.joint_names = ["gripper_left_finger_joint", "gripper_right_finger_joint"]
     else:
       joint_trajectory.joint_names = ["m1n6s200_joint_finger_1", "m1n6s200_joint_finger_2"]
