@@ -26,16 +26,19 @@ class ActionServer(object):
             auto_start=False
         )
         self.action_server.start()
+        self.move_it = MoveIt('tiago')
 
     @staticmethod
     def filter_bounding_boxes(bounding_boxes):
         min_volume = 0.00005
         max_volume = 0.005
+        min_z = 0.5
 
         # print [(b.length, b.height, b.width,) for b in bounding_boxes]
         # print [b.length * b.height * b.width for b in bounding_boxes]
 
         bounding_boxes = filter(lambda b: min_volume < b.length * b.height * b.width < max_volume, bounding_boxes)
+        bounding_boxes = filter(lambda b: b.z > min_z, bounding_boxes)
 
         return bounding_boxes
 
@@ -108,7 +111,6 @@ class ActionServer(object):
     def callback(self, goal):
         result = GraspResult()
         bounding_boxes = self.get_bounding_boxes()
-        move_it = MoveIt('tiago')
 
         if len(bounding_boxes) == 0:
             result.value = "FAILED"
@@ -117,16 +119,16 @@ class ActionServer(object):
             selected_bounding_box = bounding_boxes[0]
 
             print("Prepare for grasp: clear octomap, move head, move arm to side position")
-            self.prepare_for_grasp(move_it)
+            self.prepare_for_grasp(self.move_it)
 
             print("Add selected bounding box to octomap")
-            self.add_bounding_box_to_octomap(move_it, selected_bounding_box)
+            self.add_bounding_box_to_octomap(self.move_it, selected_bounding_box)
 
             print("Prepare for grasp: clear octomap, move head, move arm to side position")
-            self.prepare_for_grasp(move_it)
+            self.prepare_for_grasp(self.move_it)
 
             print("Attempt grasp")
-            grasp_succes = self.attempt_grasp(move_it, selected_bounding_box)
+            grasp_succes = self.attempt_grasp(self.move_it, selected_bounding_box)
 
             if grasp_succes:
                 print("Move backwards")
@@ -138,7 +140,9 @@ class ActionServer(object):
                 self.action_server.set_aborted(result)
 
         print("Moving arm to nav position")
-        move_it.tiago_move_to_nav_position()
+        self.move_it.tiago_move_to_nav_position()
+        # Remove this
+        self.move_it.open_fingers()
 
 
 if __name__ == '__main__':
