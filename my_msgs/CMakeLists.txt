@@ -8,7 +8,7 @@ project(my_msgs)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
-        actionlib_msgs
+        actionlib_msgs  
         genmsg
 )
 
@@ -18,6 +18,7 @@ find_package(catkin REQUIRED
 add_message_files(
   FILES
   DummyMessage.msg
+  Order.msg
 )
 
 ## Generate services in the 'srv' folder
