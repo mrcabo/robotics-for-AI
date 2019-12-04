@@ -8,6 +8,7 @@ class GraspTestMain(AbstractBehaviour):
     def init(self):
         self.grasp_sub = self.get_behaviour('GraspSub')
 
+
     def update(self):
         # When in starting state, start the behaviour that will talk to the ActionServer
         if self.state == State.start:
