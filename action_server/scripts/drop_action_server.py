@@ -56,6 +56,14 @@ class ActionServer(object):
 
         return self.filter_bounding_boxes(message.bounding_boxes) if filter_out_bad_boxes else message.bounding_boxes
 
+    def move_head(self, pitch, yaw):
+        rospy.wait_for_service('move_head')
+        try:
+            move_head_handler = rospy.ServiceProxy('move_head', MoveHead)
+            move_head_handler(pitch, yaw)
+        except rospy.ServiceException, e:
+            print "Service call failed: %s" % e
+
     def prepare_for_grasp(self, move_it):
         rospy.wait_for_service('clear_octomap')  # TODO: will this really call the clear_octomap??
         self.move_head(.6, 0)
