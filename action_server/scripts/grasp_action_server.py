@@ -135,14 +135,13 @@ class ActionServer(object):
                 self.move_backwards(0.4)
 
                 result.value = str(len(bounding_boxes))
+                print("Moving arm to nav position")
+                self.move_it.tiago_move_to_nav_position()
                 self.action_server.set_succeeded(result)
             else:
+                print("Moving arm to nav position")
+                self.move_it.tiago_move_to_nav_position()
                 self.action_server.set_aborted(result)
-
-        print("Moving arm to nav position")
-        self.move_it.tiago_move_to_nav_position()
-        # Remove this
-        self.move_it.open_fingers()
 
 
 if __name__ == '__main__':

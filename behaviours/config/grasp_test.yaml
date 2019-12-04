@@ -2,3 +2,4 @@ main_behaviour: GraspTestMain
 sub_behaviours: 
  - GraspSub
  - ApproachTableSub
+ - DropSub
