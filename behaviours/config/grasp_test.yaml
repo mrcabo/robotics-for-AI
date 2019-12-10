@@ -3,3 +3,4 @@ sub_behaviours:
  - GraspSub
  - ApproachTableSub
  - DropSub
+ - MoveBackwardsSub

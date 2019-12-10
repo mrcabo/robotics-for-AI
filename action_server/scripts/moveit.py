@@ -62,11 +62,14 @@ class MoveIt(object):
 
         return pose
 
-    def add_collision_object(self, x, y, z, rotation, box_size=[0, 0, 0]):
-        # In case the object is still in the scene, remove it
+    def delete_collision_object(self):
         self.scene.remove_world_object(self.object_name)
         self.scene.remove_attached_object(self.end_effector_link, self.object_name)
         rospy.sleep(1)  # Making sure the object is removed
+
+    def add_collision_object(self, x, y, z, rotation, box_size=[0, 0, 0]):
+        # In case the object is still in the scene, remove it
+        self.delete_collision_object()
 
         # Create a PoseStamped message, for the header.frame_id use "base_link"
         q = quaternion_from_euler(math.pi, 0.0, rotation)

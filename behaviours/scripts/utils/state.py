@@ -11,4 +11,6 @@ class State(Enum):
     grasping = 6
     drop_approach_table = 7
     droping = 8
+    moving_backwards = 9
+    reset_move_back = 10
 

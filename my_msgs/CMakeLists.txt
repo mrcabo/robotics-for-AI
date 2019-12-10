@@ -30,7 +30,7 @@ add_service_files(
 add_action_files(
   FILES
   DummyAction.action
-  Grasp.action
+  Simple.action
 )
 
 generate_messages(
