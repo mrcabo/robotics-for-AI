@@ -19,19 +19,35 @@ class ActionServer(object):
         self.move_it = MoveIt('tiago')
         self.action_server.start()
 
+    def move_arm_to_nav_with_recovery(self):
+        print("Moving arm to nav position")
+        # Try to put arm in nav position
+        if self.move_it.tiago_move_to_nav_position():
+            return True
+        else:
+            print("Move to nav position failed, trying recovery behaviours")
+            self.move_it.close_fingers()
+            arm_to_side_succes = self.move_it.tiago_move_to_side_position()
+            return self.move_it.tiago_move_to_nav_position() if arm_to_side_succes else False
+
     def callback(self, goal):
-        move_base_req_msg = MoveBaseRequest()
-        move_base_req_msg.meters = -.4
 
         print("Move backwards")
         result = SimpleResult()
+
+        # Try to move back
+        move_base_req_msg = MoveBaseRequest()
+        move_base_req_msg.meters = -.4
         if call_service('move_base', MoveBase, move_base_req_msg):
-            print("Moving arm to nav position")
-            self.move_it.tiago_move_to_nav_position()
-            result.value = "SUCCES"
-            self.action_server.set_succeeded(result)
+            call_service('clear_octomap')
+            if self.move_arm_to_nav_with_recovery():
+                result.value = "SUCCES"
+                self.action_server.set_succeeded(result)
+            else:
+                result.value = "ARM FAILED"
+                self.action_server.set_aborted(result)
         else:
-            result.value = "FAILED"
+            result.value = "MOVE FAILED"
             self.action_server.set_aborted(result)
 
 

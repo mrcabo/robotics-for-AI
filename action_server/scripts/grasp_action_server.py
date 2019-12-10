@@ -56,16 +56,16 @@ class ActionServer(object):
             self.action_server.set_succeeded(result)
         else:
             print('Grasp failed')
-            result.value = "FAILED"
+            result.value = "MOVE ARM FAILED"
             self.action_server.set_aborted(result)
         return result
 
     def callback(self, goal):
-        bounding_boxes = get_bounding_boxes()
+        bounding_boxes = get_bounding_boxes(get_big_box=False)
 
         if len(bounding_boxes) == 0:
             result = SimpleResult()
-            result.value = "FAILED"
+            result.value = "NO BOUNDING BOXES"
             self.action_server.set_aborted(result)
             return
 

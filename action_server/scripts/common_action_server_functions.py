@@ -7,11 +7,9 @@ from std_srvs.srv import Empty
 from moveit import MoveIt
 
 
-def filter_bounding_boxes(bounding_boxes):
-    min_volume = 0.00005
-    max_volume = 0.005
-    min_z = 0.5
-
+def filter_bounding_boxes(bounding_boxes, min_volume=0.00005, max_volume=0.005, min_z=0.5):
+    print "\n".join(map(str, [((b.x, b.y, b.z,), (b.length, b.height, b.width,), b.length * b.height * b.width)
+                              for b in bounding_boxes]))
     # print [(b.length, b.height, b.width,) for b in bounding_boxes]
     # print [b.length * b.height * b.width for b in bounding_boxes]
 
@@ -36,14 +34,18 @@ def switch_bounding_box_publisher(on=True):
     return call_service('enable_bounding_box_publisher' if on else 'disable_bounding_box_publisher')
 
 
-def get_bounding_boxes(filter_out_bad_boxes=True):
+def get_bounding_boxes(get_big_box=True):
     switch_bounding_box_publisher(True)
     try:
         message = rospy.wait_for_message('/bounding_boxes', BoundingBoxes, 3.0)
     finally:
         switch_bounding_box_publisher(False)
 
-    return filter_bounding_boxes(message.bounding_boxes) if filter_out_bad_boxes else message.bounding_boxes
+    return filter_bounding_boxes(
+        bounding_boxes=message.bounding_boxes,
+        min_volume=0.0001 if get_big_box else 0.00005,
+        max_volume=0.01 if get_big_box else 0.001
+    )
 
 
 def add_bounding_box_to_octomap(move_it, bounding_box):
@@ -63,7 +65,6 @@ def move_head(pitch, yaw):
 
 def prepare_for_grasp(move_it):
     call_service('clear_octomap')
-    # rospy.wait_for_service('clear_octomap')
     move_head(.6, 0)
     move_head(.6, -1)
     move_head(.6, 1)
