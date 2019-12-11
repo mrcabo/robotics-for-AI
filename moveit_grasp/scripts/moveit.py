@@ -192,7 +192,7 @@ class MoveIt(object):
 
       for height in np.arange(z, z+0.3, 0.01): 
         pose = [x, y, height, q[0], q[1], q[2], q[3]]
-      poses.append(pose)
+        poses.append(pose)
 
     self.arm.set_pose_reference_frame("base_link")
     self.arm.set_pose_targets(poses, self.end_effector_link)
