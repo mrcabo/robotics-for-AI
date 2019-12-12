@@ -181,7 +181,7 @@ class MoveIt(object):
   def move_to_drop(self, x, y, z, rotation = -math.pi/2):
     poses = []
 
-    for roll in np.arange(-math.pi/2, math.pi/2, math.radians(1)):
+    for roll in np.arange(-math.pi/2, math.pi/2, math.radians(10)):
 
       if self.robot_name == "tiago":
         if roll < 0:
@@ -190,7 +190,7 @@ class MoveIt(object):
       else:
         q = quaternion_from_euler(0, math.pi + roll, rotation + math.pi)
 
-      for height in np.arange(z, z+0.3, 0.01): 
+      for height in np.arange(z, z+0.3, 0.04): 
         pose = [x, y, height, q[0], q[1], q[2], q[3]]
         poses.append(pose)
 
