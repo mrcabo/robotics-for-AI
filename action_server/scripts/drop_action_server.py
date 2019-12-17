@@ -23,11 +23,11 @@ class ActionServer(object):
         prepare_for_grasp(self.move_it)
 
         print("Moving arm in position for drop")
-        success = self.move_it.move_to(
+
+        success = self.move_it.move_to_drop(
             x=bounding_box.x,
             y=bounding_box.y,
-            z=bounding_box.z + (bounding_box.height / 2) + 0.2,  # TODO: This is 20cm from the center, it should be from the top
-            rotation=bounding_box.yaw
+            z=bounding_box.z + (bounding_box.height / 2)
         )
 
         result = SimpleResult()

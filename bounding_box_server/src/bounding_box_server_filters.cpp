@@ -27,7 +27,7 @@ void BoundingBoxServer::passThroughFilter(PointCloudPtr point_cloud, PointCloudP
  * \param tableless_point_cloud Pointer to the Point Cloud without a table surface in it.
  * \param distance_threshold determines the threshold in meters when a points belongs to a possible planar surface or not.
  */
-void BoundingBoxServer::removeTable(PointCloudPtr point_cloud, PointCloudPtr tableless_point_cloud, float distance_threshold) {
+float BoundingBoxServer::removeTable(PointCloudPtr point_cloud, PointCloudPtr tableless_point_cloud, float distance_threshold) {
   pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());  // Needed for the segmentiation
   pcl::PointIndices::Ptr inliers(new pcl::PointIndices());                 // Needed for the segmentation
 
@@ -61,7 +61,7 @@ void BoundingBoxServer::removeTable(PointCloudPtr point_cloud, PointCloudPtr tab
   if (inliers->indices.size () == 0)
   {
     PCL_ERROR ("Could not estimate a planar model for the given dataset.");
-    return;
+    return -1;
   }
 
   /*
@@ -81,8 +81,21 @@ void BoundingBoxServer::removeTable(PointCloudPtr point_cloud, PointCloudPtr tab
 
   extract_indices_.setInputCloud (point_cloud);
   extract_indices_.setIndices (inliers);
+
+  // new
+  PointCloudPtr table_pc (new PointCloud());
+  extract_indices_.setNegative (false);
+  extract_indices_.filter (*table_pc);
+  Point min, max;
+  pcl::getMinMax3D(*table_pc, min, max);
+  float highest_z_of_table = max.z;
+
+  std::cerr << "PointCloud representing the planar component: " << table_pc->width * table_pc->height << " data points." << std::endl;
+
+  // proven to work
   extract_indices_.setNegative (true);
   extract_indices_.filter (*tableless_point_cloud);
+  return highest_z_of_table;
 }
 
 //! Given a Point Cloud, extract the clusters as seperate Point Clouds.

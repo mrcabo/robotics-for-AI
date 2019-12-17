@@ -213,6 +213,31 @@ class MoveIt(object):
         self.gripper.go(wait=True)
         rospy.sleep(2.0)
 
+    def move_to_drop(self, x, y, z, rotation=-math.pi / 2):
+        poses = []
+
+        for roll in np.arange(-math.pi / 2, math.pi / 2, math.radians(10)):
+
+            if self.robot_name == "tiago":
+                if roll < 0:
+                    continue
+                q = quaternion_from_euler(0, math.pi / 2 + roll, rotation)
+            else:
+                q = quaternion_from_euler(0, math.pi + roll, rotation + math.pi)
+
+            for height in np.arange(z, z + 0.3, 0.04):
+                pose = [x, y, height, q[0], q[1], q[2], q[3]]
+                poses.append(pose)
+
+        self.arm.set_pose_reference_frame("base_link")
+        self.arm.set_pose_targets(poses, self.end_effector_link)
+        plan = self.arm.plan()
+
+        result = self.arm.go(wait=True)
+        self.arm.stop()
+        self.arm.clear_pose_targets()
+        return result
+
     def move_to(self, x, y, z, rotation):
         if self.robot_name == "tiago":
             q = quaternion_from_euler(0, math.pi / 2, rotation)

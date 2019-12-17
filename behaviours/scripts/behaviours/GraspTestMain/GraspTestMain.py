@@ -20,7 +20,7 @@ class GraspTestMain(AbstractBehaviour):
         if self.state == State.start:
             # Do final approximation to the table
             print("START: Approaching table")
-            self.approach_sub.start_approach(0.35)
+            self.approach_sub.start_approach(0.45)
             self.set_state(State.approach_table)
 
         # If in approach_table state we ping the subbehaviour
@@ -67,7 +67,7 @@ class GraspTestMain(AbstractBehaviour):
                     self.finish()
                 else:
                     print("Approaching table")
-                    self.approach_sub.start_approach(0.35)
+                    self.approach_sub.start_approach(0.45)
                     self.set_state(State.approach_table)
             elif self.move_back_sub.failed():
                 print("Move back sub behavior failed with reason: %s" % self.move_back_sub.failure_reason)

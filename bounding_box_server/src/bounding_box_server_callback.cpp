@@ -26,8 +26,12 @@ void BoundingBoxServer::updateTimerEvent(const ros::TimerEvent &) {
 
   voxelizePointCloud(point_cloud, point_cloud); // Reduce the Point Cloud size
   passThroughFilter(point_cloud, point_cloud, "z", 0, 1.2);  // // Mostly to remove the floor from the Point Cloud
-  removeTable(point_cloud, point_cloud, 0.01f); // Remove the planar (should be table) surface
+  float highest_z_of_table = removeTable(point_cloud, point_cloud, 0.01f); // Remove the planar (should be table) surface
 
+  if (highest_z_of_table == -1) {
+    ROS_WARN("No table found");
+    return;
+  }
   std::vector<PointCloudPtr> cluster_clouds;
   extractClusters(point_cloud, cluster_clouds, 0.05f); // Extract the clusters and keep them in a dynamic array (vector)
 
@@ -51,13 +55,24 @@ void BoundingBoxServer::updateTimerEvent(const ros::TimerEvent &) {
     transformPointCloudToCenter(cluster_cloud, centered_point_cloud, centroid_vector, angle); // Rotate and Translate the Point Cloud to the origin (0, 0, 0)
 
     bounding_box_server::BoundingBox bounding_box;
-    
     bounding_box.x = centroid_vector.x();
     bounding_box.y = centroid_vector.y();
     bounding_box.z = centroid_vector.z();
     bounding_box.yaw = angle;
 
     getDimensions(centered_point_cloud, bounding_box); // Calculate the length, width, and height of the Transformed Point Cloud
+
+    // Use the table z to fix the point cloud
+    float top_z_of_box = bounding_box.z + bounding_box.height / 2;
+    float bounding_box_height_from_table = top_z_of_box - highest_z_of_table;
+    if (top_z_of_box > highest_z_of_table) {
+//      std::cerr << "top of box" << top_z_of_box << " top of table" << bounding_box_height_from_table;
+//      std::cerr << " old height: " << bounding_box.height << " new height: " << bounding_box_height_from_table << " old z: " << bounding_box.z;
+      bounding_box.z = bounding_box.z - (bounding_box_height_from_table - bounding_box.height) / 2;
+//      std::cerr << " new z: " << bounding_box.z << std::endl;
+      bounding_box.height = bounding_box_height_from_table;
+    }
+
     bounding_boxes.push_back(bounding_box);
   }
 

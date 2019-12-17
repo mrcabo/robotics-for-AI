@@ -1,20 +1,23 @@
 import rospy
 
-from base_control_server.srv import MoveBaseRequest, MoveBase
 from bounding_box_server.msg import BoundingBoxes
 from head_controller.srv import MoveHead
 from std_srvs.srv import Empty
-from moveit import MoveIt
+
+
+def repair_bounding_boxes(bounding_boxes):
+    return bounding_boxes
 
 
 def filter_bounding_boxes(bounding_boxes, min_volume=0.00005, max_volume=0.005, min_z=0.5):
-    print "\n".join(map(str, [((b.x, b.y, b.z,), (b.length, b.height, b.width,), b.length * b.height * b.width)
-                              for b in bounding_boxes]))
-    # print [(b.length, b.height, b.width,) for b in bounding_boxes]
+    print("length, height, width, x, y, z, size")
+    print "\n".join([", ".join(["{:.2f}"] * 7).format(b.length, b.height, b.width, b.x, b.y, b.z, (b.length * b.height * b.width)) for b in bounding_boxes])
     # print [b.length * b.height * b.width for b in bounding_boxes]
 
     bounding_boxes = filter(lambda b: min_volume < b.length * b.height * b.width < max_volume, bounding_boxes)
     bounding_boxes = filter(lambda b: b.z > min_z, bounding_boxes)
+
+    bounding_boxes = repair_bounding_boxes(bounding_boxes)
 
     return bounding_boxes
 
@@ -44,7 +47,7 @@ def get_bounding_boxes(get_big_box=True):
     return filter_bounding_boxes(
         bounding_boxes=message.bounding_boxes,
         min_volume=0.0001 if get_big_box else 0.00005,
-        max_volume=0.01 if get_big_box else 0.001
+        max_volume=0.05 if get_big_box else 0.001
     )
 
 

@@ -80,7 +80,7 @@ class BoundingBoxServer {
     bool getPointCloudMessage(sensor_msgs::PointCloud2 &point_cloud_message);
     bool transformPointCloudMessageToLink(sensor_msgs::PointCloud2 &point_cloud_message, sensor_msgs::PointCloud2 &transformed_point_cloud_message, std::string transform_to_link);
     void passThroughFilter(PointCloudPtr point_cloud, PointCloudPtr filtered_cloud, std::string field_name, float min_value, float max_value);
-    void removeTable(PointCloudPtr point_cloud, PointCloudPtr tableless_point_cloud, float distance_threshold);
+    float removeTable(PointCloudPtr point_cloud, PointCloudPtr tableless_point_cloud, float distance_threshold);
     void voxelizePointCloud(PointCloudPtr point_cloud, PointCloudPtr voxelized_point_cloud, float leaf_size = 0.02f);
     void extractClusters(PointCloudPtr point_cloud, std::vector<PointCloudPtr> &clusters, float cluster_tolerance);
     void projectPointCloudOnPlane(PointCloudPtr point_cloud, PointCloudPtr projected_point_cloud);
