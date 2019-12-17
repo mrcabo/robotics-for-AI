@@ -1,0 +1,8 @@
+main_behaviour: DemoMain
+sub_behaviours:
+ - GraspMainSub
+ - GraspSub
+ - ApproachTableSub
+ - DropSub
+ - MoveBackwardsSub
+ - ClassificationSub

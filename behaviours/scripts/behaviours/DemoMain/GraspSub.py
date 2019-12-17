@@ -12,12 +12,13 @@ class GraspSub(AbstractBehaviour):
         print 'Connecting to grasp_action_server'
         self.client.wait_for_server()
         print 'Connected to grasp_action_server'
+        self.recognised_object = None
 
     def update(self):
         # When the state is start, send two integers to the action server
         if self.state == State.start:
             goal = SimpleGoal()
-            goal.s = "GRASP"
+            goal.s = str(self.recognised_object)
             print "Sending %s to action server" % goal.s
             self.client.send_goal(goal)
             self.state = State.waiting
@@ -36,5 +37,9 @@ class GraspSub(AbstractBehaviour):
         self.state = State.idle
         self.init()
 
-    def start_pickup(self, item='eraser'):
-        self.pickup_item = item
+    def start_pickup(self, item):
+        self.recognised_object = item
+        self.state = State.start
+
+    def start(self):
+        raise NotImplementedError("Use start pickup!")

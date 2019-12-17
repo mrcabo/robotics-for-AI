@@ -14,10 +14,17 @@ import cv2
 
 class ActionServer(object):
     image_topic = "xtion/rgb/image_raw"
-    model_path = os.path.join(os.environ['HOME'], 'network_model', '16_8_128_7_convnet.h5')
     image_save_path = os.path.join(os.environ['HOME'], 'saved_images')
-    input_size = (64, 64)
-    class_names = ["crazyflie", "erazer_box", "evergreen", "jetson", "powerbank", "raspicam", "whitebox"]
+    class_names = ['evergreen', 'whitebox', 'powerbank', 'crazyflie', 'eraser', 'jetson', 'raspberry']  # sim objects
+
+    # Real robot
+    # model_path = os.path.join(os.environ['HOME'], 'network_model', '16_8_128_7_convnet_new.h5')
+    # input_size = (64, 64)  # For real robot
+    # classes = ["crazyflie", "eraser", "evergreen", "jetson", "powerbank", "raspberry", "whitebox"]
+
+    # Simulation only
+    model_path = os.path.join(os.environ['HOME'], 'network_model', 'simulation_model_tas.h5')
+    input_size = (32, 32)
 
     def __init__(self):
         self.action_server = actionlib.SimpleActionServer(
@@ -53,8 +60,8 @@ class ActionServer(object):
         request.leaf_size = 0.01
         return cl(request)  ## makes the request and returns the response
 
-    @staticmethod
-    def cut_and_scale(image, roi, size=64):
+    def cut_and_scale(self, image, roi, size=None):
+        size = size or self.input_size[0]
         # clip the rois to image width/height
         width = image.shape[1]
         height = image.shape[0]
@@ -120,18 +127,29 @@ class ActionServer(object):
     def callback(self, goal):
         # Retrieve image from image topic
         image = self.get_image()
+
+        result_strings = []
         # Get regions of interest using the pointclouds
-        rois = self.get_rois()
-        # Average over 9 prediction made on an area around th roi
-        predictions = [self.predict_one_roi(image, roi) for roi in rois]
-        # predictions -> class names
-        predicted_class_names = [self.class_names[np.argmax(prediction)] for prediction in predictions]
-        # Save the final classification
-        self.save_images(np.array([self.cut_and_scale(image, roi) for roi in rois]), predictions, predicted_class_names)
+        for roi in self.get_rois():
+            # Average over 9 prediction made on an area around the roi
+            prediction = self.predict_one_roi(image, roi)
+            # prediction -> class name
+            predicted_class_name = self.class_names[np.argmax(prediction)]
+            # save the image
+            self.save_images(np.array([self.cut_and_scale(image, roi)]), [prediction], [predicted_class_name])
+            result_strings.append("{};{};{};{}".format(predicted_class_name, roi.center_x, roi.center_y, roi.center_z))
+
+        # rois = self.get_rois()
+        # # Average over 9 prediction made on an area around the roi
+        # predictions = [self.predict_one_roi(image, roi) for roi in rois]
+        # # predictions -> class names
+        # predicted_class_names = [self.class_names[np.argmax(prediction)] for prediction in predictions]
+        # # Save the final classification
+        # self.save_images(np.array([self.cut_and_scale(image, roi) for roi in rois]), predictions, predicted_class_names)
 
         # Build the result message
         result = ClassificationActionResult()
-        result.object_classifications = predicted_class_names
+        result.object_classifications = result_strings
         self.action_server.set_succeeded(result)
 
 

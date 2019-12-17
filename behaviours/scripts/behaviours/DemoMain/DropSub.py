@@ -5,19 +5,19 @@ from utils.abstractBehaviour import AbstractBehaviour
 from utils.state import State
 
 
-class GraspSub(AbstractBehaviour):
-
+class DropSub(AbstractBehaviour):
+    
     def init(self):
-        self.client = actionlib.SimpleActionClient('grasp_action_server', SimpleAction)
-        print 'Connecting to grasp_action_server'
+        self.client = actionlib.SimpleActionClient('drop_action_server', SimpleAction)
+        print 'Connecting to drop_action_server'
         self.client.wait_for_server()
-        print 'Connected to grasp_action_server'
+        print 'Connected to drop_action_server'
 
     def update(self):
         # When the state is start, send two integers to the action server
         if self.state == State.start:
             goal = SimpleGoal()
-            goal.s = "GRASP"
+            goal.s = "drop order"
             print "Sending %s to action server" % goal.s
             self.client.send_goal(goal)
             self.state = State.waiting
@@ -30,11 +30,8 @@ class GraspSub(AbstractBehaviour):
             elif self.client.get_state() == actionlib.GoalStatus.ABORTED:
                 result = self.client.get_result()
                 print 'Action server failed with result: ', result.value
-                self.fail('Grasp Action server failed')
+                self.fail('Action server failed')
 
     def reset(self):
         self.state = State.idle
         self.init()
-
-    def start_pickup(self, item='eraser'):
-        self.pickup_item = item

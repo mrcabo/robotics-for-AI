@@ -1,0 +1,41 @@
+import actionlib
+from my_msgs.msg import ClassificationActionAction, ClassificationActionGoal
+
+from behaviours.DemoMain.RecognisedObject import RecognisedObject
+from utils.abstractBehaviour import AbstractBehaviour
+from utils.state import State
+
+
+class ClassificationSub(AbstractBehaviour):
+    
+    def init(self):
+        self.client = actionlib.SimpleActionClient('classification_server', ClassificationActionAction)
+        print 'Connecting to server'
+        self.client.wait_for_server()
+        print 'Connected to the server'
+        self.result = None
+
+    def update(self):
+        # When the state is start, send start signal to the action server
+        if self.state == State.start:
+            goal = ClassificationActionGoal()
+            goal.start_signal = "START!"
+            print "Sending start signal to action server"
+            self.client.send_goal(goal)
+            self.state = State.waiting
+            self.result = None
+        # When the state is waiting, ping the action server to see if it succeeded already
+        elif self.state == State.waiting:
+            if self.client.get_state() == actionlib.GoalStatus.SUCCEEDED:
+                result = self.client.get_result()
+                self.result = [RecognisedObject(s) for s in result]
+                print 'Action server succeeded with result: ', result.object_classifications
+                self.finish()
+            elif self.client.get_state() == actionlib.GoalStatus.ABORTED:
+                result = self.client.get_result()
+                print 'Action server failed with result: ', result.object_classifications
+                self.fail('Action server failed')
+
+    def reset(self):
+        self.state = State.idle
+        self.init()

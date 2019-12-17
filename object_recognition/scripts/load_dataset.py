@@ -4,7 +4,7 @@ import numpy as np
 from os.path import join, isfile
 from os import listdir
 import cv2
-classes = ["crazyflie", "erazer_box", "evergreen", "jetson", "powerbank", "raspicam", "whitebox"]
+classes = ['evergreen', 'whitebox', 'powerbank', 'crazyflie', 'eraser', 'jetson', 'raspberry']
 
 
 def load_category(class_name, dataset_path):
@@ -35,7 +35,7 @@ def load_dataset(path='/home/group9/dataset'):
 
 
 def load_from_npy(path='.'):
-    return np.load(join(path, 'data.npy')), np.load(join(path, 'labels.npy')), np.load(join(path, 'rois.npy'))
+    return np.load(join(path, 'new_data.npy')), np.load(join(path, 'new_labels.npy')), np.load(join(path, 'new_rois.npy'))
 
 
 def random_part():
@@ -46,7 +46,7 @@ def random_brightness_change(image):
     hsvImg = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # decreasing the V channel by a factor from the original
-    values = hsvImg[:, :, 2] * (1 + ((random.random() - 0.5) / 2))
+    values = hsvImg[:, :, 2] * (1 + ((random.random() - 0.5) / 5))
     hsvImg[:, :, 2] = values
 
     hsvImg = np.clip(hsvImg, 0, 255)
@@ -139,6 +139,11 @@ def split_train_test(split=0.8, path='.'):
         y_test.append(class_labels[split_idx:])
 
     return np.concatenate(x_train), np.concatenate(y_train), np.concatenate(x_test), np.concatenate(y_test)
+
+# data, labels, rois = load_dataset()
+# np.save("new_data.npy", data)
+# np.save("new_labels.npy", labels)
+# np.save("new_rois.npy", rois)
 
 
 # x_train, y_train, x_test, y_test = split_train_test(.8)

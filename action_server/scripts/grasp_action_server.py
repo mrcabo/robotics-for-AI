@@ -2,6 +2,7 @@ import actionlib
 import rospy
 from my_msgs.msg import SimpleResult, SimpleAction
 
+from behaviours.scripts.behaviours.DemoMain.RecognisedObject import RecognisedObject
 from common_action_server_functions import prepare_for_grasp, add_bounding_box_to_octomap, get_bounding_boxes
 from moveit import MoveIt
 
@@ -60,7 +61,11 @@ class ActionServer(object):
             self.action_server.set_aborted(result)
         return result
 
+    def roi_bb_dis(self, roi, bb):
+        return (bb.x-roi.center_x) ** 2 + (bb.y-roi.center_y) ** 2 + (bb.z-roi.center_z) ** 2
+
     def callback(self, goal):
+        goal_object = RecognisedObject(goal.s)
         bounding_boxes = get_bounding_boxes(get_big_box=False)
 
         if len(bounding_boxes) == 0:
@@ -69,7 +74,7 @@ class ActionServer(object):
             self.action_server.set_aborted(result)
             return
 
-        selected_bounding_box = bounding_boxes[0]
+        selected_bounding_box = sorted(bounding_boxes, key=lambda b: self.roi_bb_dis(goal_object, b))[0]
         result = self.grasp_box_flow(selected_bounding_box)
         return
 

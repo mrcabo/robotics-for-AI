@@ -8,7 +8,8 @@ class State(Enum):
     failed = 3
     waiting = 4
     approach_table = 5
-    grasping = 6
-    dropping = 7
-    moving_backwards = 8
+    recognising = 6
+    grasping = 7
+    dropping = 8
+    moving_backwards = 9
 
