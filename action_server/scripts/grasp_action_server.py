@@ -31,7 +31,7 @@ class ActionServer(object):
             y=bounding_box.y,
             z=bounding_box.z,
             rotation=bounding_box.yaw,
-            z_max=bounding_box.z + bounding_box.height / 2,
+            z_max=bounding_box.z + bounding_box.height / 4,
             width=bounding_box.width
         )
 
