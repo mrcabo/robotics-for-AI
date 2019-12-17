@@ -26,12 +26,14 @@ class ActionServer(object):
         # Close the fingers
         self.move_it.close_fingers()
 
+        z_top = bounding_box.z + bounding_box.height / 2
+
         return self.move_it.grasp(
             x=bounding_box.x + 0.0075,
             y=bounding_box.y,
-            z=bounding_box.z - bounding_box.height / 2,
+            z=z_top - 0.07,
             rotation=bounding_box.yaw,
-            z_max=bounding_box.z,
+            z_max=z_top - 0.05,
             width=bounding_box.width
         )
 
