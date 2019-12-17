@@ -8,7 +8,7 @@ project(my_msgs)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED
-        actionlib_msgs  
+        actionlib_msgs
         genmsg
 )
 
@@ -32,6 +32,7 @@ add_action_files(
   FILES
   DummyAction.action
   Simple.action
+  ClassificationAction.action
 )
 
 generate_messages(

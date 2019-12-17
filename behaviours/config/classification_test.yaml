@@ -1,0 +1,3 @@
+main_behaviour: ClassificationTest
+sub_behaviours: 
+ - ClassificationSub
