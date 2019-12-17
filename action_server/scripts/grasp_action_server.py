@@ -27,7 +27,7 @@ class ActionServer(object):
         self.move_it.close_fingers()
 
         return self.move_it.grasp(
-            x=bounding_box.x,
+            x=bounding_box.x + 0.005,
             y=bounding_box.y,
             z=bounding_box.z,
             rotation=bounding_box.yaw,
