@@ -59,7 +59,7 @@ def plot_one_split(epochs=10, save_model=False):
 
     if save_model:
         path = os.path.join(os.environ['HOME'], 'network_model')
-        model.save(os.path.join(path, "16_8_128_7_convnet.h5"))
+        model.save(os.path.join(path, "16_8_128_7_convnet_new.h5"))
 
     # plot the training accuracy
     plt.plot(history.history['accuracy'])
@@ -118,7 +118,7 @@ def cross_validate(epochs=10, n_splits=4):
 
 
 # cross_validate()
-plot_one_split(epochs=9, save_model=True)
+plot_one_split(epochs=4, save_model=True)
 
 # Cross validation
 # cross_validate(epochs=9)

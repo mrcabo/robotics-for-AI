@@ -17,7 +17,7 @@ class ActionServer(object):
     model_path = os.path.join(os.environ['HOME'], 'network_model', '16_8_128_7_convnet.h5')
     image_save_path = os.path.join(os.environ['HOME'], 'saved_images')
     input_size = (64, 64)
-    class_names = ["crazyflie", "erazer_box", "evergreen", "jetson", "powerbank", "raspicam", "whitebox"]
+    class_names = ['evergreen', 'whitebox', 'powerbank', 'crazyflie', 'eraser', 'jetson', 'raspberry']
 
     def __init__(self):
         self.action_server = actionlib.SimpleActionServer(
