@@ -1,0 +1,3 @@
+main_behaviour: Navigation_test
+sub_behaviours: 
+ - NavigationSub

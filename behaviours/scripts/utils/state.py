@@ -12,4 +12,4 @@ class State(Enum):
     grasping = 7
     dropping = 8
     moving_backwards = 9
-
+    navigating = 10

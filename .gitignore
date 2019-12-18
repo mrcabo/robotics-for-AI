@@ -5,4 +5,5 @@
 *.JPG
 *.JPEG
 *.PNG
+.idea/
 *.npy

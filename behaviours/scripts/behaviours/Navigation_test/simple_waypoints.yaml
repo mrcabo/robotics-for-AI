@@ -1,0 +1,9 @@
+point1:
+  orientation: {x: 0, y: 0, z: 0.11, w: 0.99}
+  pos: {x: 0.055, y: -1.09}
+point2:
+  orientation: {x: 0, y: 0, z: 0.2, w: 0.97}
+  pos: {x: -0.48, y: 0.78}
+point3:
+  orientation: {x: 0, y: 0, z: 0.94, w: -0.31}
+  pos: {x: -0.006, y: 0.77}
