@@ -11,22 +11,40 @@ class GraspMainSub(AbstractBehaviour):
         self.grasp_sub = self.get_behaviour('GraspSub')
         self.approach_sub = self.get_behaviour('ApproachTableSub')
         self.move_back_sub = self.get_behaviour('MoveBackwardsSub')
-        self.dropping_sub = self.get_behaviour('DropSub')
         self.classification_sub = self.get_behaviour('ClassificationSub')
 
-        self.box_in_hand = False
-        self.dropped_the_box = False
+        self.successful_grasp = False
 
-        self.recognised_objects = None
-        self.target_object_name = ''
+        self.matches = {}
+        self.target_object_names = []
 
-    def start_grasp(self, item):
-        self.target_object_name = item
+        self.current_match = None
+        self.not_seen_objects = []
+
+    def start_grasp(self, items):
+        self.not_seen_objects = []
+        self.matches = {}
+        self.successful_grasp = False
+        self.target_object_names = items
         self.state = State.start
         self.failure_reason = ''
 
     def start(self):
-        raise NotImplementedError("Use start pickup!")
+        raise NotImplementedError("Use start_grasp!")
+
+    def remove_duplicate_matches(self, matches):
+        """
+        Dont put two of the same boxes!!!
+        """
+        filtered = {}
+        for match in matches:
+            if match.class_name in filtered:
+                if match.center_z > filtered[match.class_name].center_z:
+                    filtered[match.class_name] = match
+            else:
+                filtered[match.class_name] = match
+
+        return filtered
 
     def update(self):
         if self.state == State.start:
@@ -40,15 +58,10 @@ class GraspMainSub(AbstractBehaviour):
         # if approach sub fails -> go to moving backwards
         elif self.state == State.approach_table:
             if self.approach_sub.finished():
-                if self.box_in_hand:
-                    print("Starting dropping sub behaviour")
-                    self.set_state(State.dropping)
-                    self.dropping_sub.start()
-                else:
-                    print("Starting recognising sub behaviour")
-                    self.set_state(State.recognising)
-                    self.recognised_objects = None
-                    self.classification_sub.start()
+                print("Starting recognising sub behaviour")
+                self.set_state(State.recognising)
+                self.recognised_objects = None
+                self.classification_sub.start()
             elif self.approach_sub.failed():
                 print("Final approximation to the table failed")
                 self.set_state(State.moving_backwards)
@@ -60,21 +73,27 @@ class GraspMainSub(AbstractBehaviour):
         elif self.state == State.recognising:
             if self.classification_sub.finished():
                 print("Starting grasping sub behaviour")
-                self.recognised_objects = self.classification_sub.result  # TODO do we need it to be class variable?
-                matches = [x for x in self.recognised_objects if (x.class_name == self.target_object_name)]
-                if len(matches) == 1:
-                    target = matches[0]
-                    self.set_state(State.grasping)
-                    self.grasp_sub.start_pickup(target)
-                elif len(matches) > 1:
-                    target = sorted(matches, key=lambda x: x.center_z, reverse=True)
-                    self.set_state(State.grasping)
-                    self.grasp_sub.start_pickup(target)
-                else:
+                # filter out matches that are in the target_objects_names
+                matches_with_duplicates = list(filter(lambda o: o.class_name in self.target_object_names, self.classification_sub.result))
+                # remove duplicate matches while choosing the highest z
+                self.matches = self.remove_duplicate_matches(matches_with_duplicates)
+                # filter the target object names on the matches we found
+                self.target_object_names = list(filter(lambda n: n in self.matches.keys(), self.target_object_names))
+
+                if not self.matches:
                     self.failure_reason = 'object_not_found'
                     print("object_not_found")
                     self.set_state(State.moving_backwards)
                     self.move_back_sub.start()
+                elif not self.target_object_names:
+                    self.failure_reason = "tried_all_targets"
+                    print("no more targets in target object names left")
+                    self.set_state(State.moving_backwards)
+                    self.move_back_sub.start()
+                else:
+                    self.set_state(State.grasping)
+                    self.current_match = self.target_object_names.pop(0)
+                    self.grasp_sub.start_pickup(self.matches[self.current_match])
 
             elif self.classification_sub.failed():
                 print("Classification sub behavior failed with reason: %s" % self.classification_sub.failure_reason)
@@ -87,14 +106,16 @@ class GraspMainSub(AbstractBehaviour):
         # If grasp sub fails -> moving backwards
         elif self.state == State.grasping:
             if self.grasp_sub.finished():
-                self.box_in_hand = True
                 print("Start moving backwards sub behaviour")
+                self.successful_grasp = True
                 self.set_state(State.moving_backwards)
                 self.move_back_sub.start()
             elif self.grasp_sub.failed():
-                self.box_in_hand = False
                 print("Grasping sub behavior failed with reason: %s" % self.grasp_sub.failure_reason)
                 print("Start moving backwards sub behaviour")
+                if self.grasp_sub.failure_reason == 'no_matching_bounding_box':
+                    self.not_seen_objects.append(self.current_match)
+                self.successful_grasp = False
                 self.set_state(State.moving_backwards)
                 self.move_back_sub.start()
 
@@ -105,11 +126,11 @@ class GraspMainSub(AbstractBehaviour):
             if self.move_back_sub.finished():
                 if self.failure_reason:
                     self.fail(self.failure_reason)
-                elif self.dropped_the_box:
+                elif self.successful_grasp:
                     print("The main behaviour succeeded:P!")
                     self.finish()
                 else:
-                    print("Approaching table")
+                    print("approaching table for new grasp try")
                     self.approach_sub.start_approach(0.45)
                     self.set_state(State.approach_table)
             elif self.move_back_sub.failed():
@@ -117,19 +138,8 @@ class GraspMainSub(AbstractBehaviour):
                 print("Main behaviour fails")
                 self.fail("Moving backwards failed")
 
-        # Yeye ping the behaviour
-        # if drop sub succeeds -> set dropped_the_box to True and move backwards
-        # if drop sub fails -> move backwards
-        elif self.state == State.dropping:
-            if self.dropping_sub.finished():
-                print("Drop sub finished succesfully")
-                self.dropped_the_box = True
-                self.box_in_hand = False
-                print("Start moving backwards sub behaviour")
-                self.set_state(State.moving_backwards)
-                self.move_back_sub.start()
-            elif self.dropping_sub.failed():
-                print("Drop sub failed with: %s" % self.dropping_sub.failure_reason)
-                print("Start moving backwards sub behaviour")
-                self.set_state(State.moving_backwards)
-                self.move_back_sub.start()
+    def get_seen_items(self):
+        return [match.class_name for key, match in self.matches.items() if key not in self.not_seen_objects]
+
+    def get_picked_up_item(self):
+        return self.current_match if self.successful_grasp else None

@@ -69,7 +69,15 @@ class ActionServer(object):
         return result
 
     def roi_bb_dis(self, roi, bb):
-        return (bb.x-roi.center_x) ** 2 + (bb.y-roi.center_y) ** 2 + (bb.z-roi.center_z) ** 2
+        dis = (bb.x-roi.center_x) ** 2 + (bb.y-roi.center_y) ** 2 + (bb.z-roi.center_z) ** 2
+        print("distance = {:.4f}".format(dis))
+        return dis
+
+    def get_closest_bounding_box(self, goal_object, bounding_boxes, max_distance=0.03):
+        sorted_box_distances = sorted([(box, self.roi_bb_dis(goal_object, box)) for box in bounding_boxes],
+                                      key=lambda p: p[1])
+        filtered_box_distances = filter(lambda p: p[1] < max_distance, sorted_box_distances)
+        return filtered_box_distances[0][0] if filtered_box_distances else None
 
     def callback(self, goal):
         goal_object = RecognisedObject(goal.s)
@@ -81,7 +89,13 @@ class ActionServer(object):
             self.action_server.set_aborted(result)
             return
 
-        selected_bounding_box = sorted(bounding_boxes, key=lambda b: self.roi_bb_dis(goal_object, b))[0]
+        selected_bounding_box = self.get_closest_bounding_box(goal_object, bounding_boxes)
+        if selected_bounding_box is None:
+            result = SimpleResult()
+            result.value = "no_matching_bounding_box"
+            self.action_server.set_aborted(result)
+            return
+
         result = self.grasp_box_flow(selected_bounding_box)
         return
 

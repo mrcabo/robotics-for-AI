@@ -31,7 +31,7 @@ class GraspSub(AbstractBehaviour):
             elif self.client.get_state() == actionlib.GoalStatus.ABORTED:
                 result = self.client.get_result()
                 print 'Action server failed with result: ', result.value
-                self.fail('Grasp Action server failed')
+                self.fail(result.value)
 
     def reset(self):
         self.state = State.idle

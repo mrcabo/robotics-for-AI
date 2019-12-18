@@ -6,3 +6,5 @@ sub_behaviours:
  - DropSub
  - MoveBackwardsSub
  - ClassificationSub
+ - NavigationSub
+ - DropMainSub

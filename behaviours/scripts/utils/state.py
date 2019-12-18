@@ -13,3 +13,4 @@ class State(Enum):
     dropping = 8
     moving_backwards = 9
     navigating = 10
+    select_table = 11
