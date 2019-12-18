@@ -1,7 +1,6 @@
 import actionlib
 from my_msgs.msg import ClassificationActionAction, ClassificationActionGoal
 
-from behaviours.DemoMain.RecognisedObject import RecognisedObject
 from utils.abstractBehaviour import AbstractBehaviour
 from utils.state import State
 
@@ -23,12 +22,11 @@ class ClassificationSub(AbstractBehaviour):
             print "Sending start signal to action server"
             self.client.send_goal(goal)
             self.state = State.waiting
-            self.result = None
         # When the state is waiting, ping the action server to see if it succeeded already
         elif self.state == State.waiting:
             if self.client.get_state() == actionlib.GoalStatus.SUCCEEDED:
                 result = self.client.get_result()
-                self.result = [RecognisedObject(s) for s in result.object_classifications]
+                self.result =
                 print 'Action server succeeded with result: ', result.object_classifications
                 self.finish()
             elif self.client.get_state() == actionlib.GoalStatus.ABORTED:

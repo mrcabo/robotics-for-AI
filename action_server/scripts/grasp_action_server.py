@@ -2,7 +2,12 @@ import actionlib
 import rospy
 from my_msgs.msg import SimpleResult, SimpleAction
 
-from behaviours.scripts.behaviours.DemoMain.RecognisedObject import RecognisedObject
+
+import sys
+sys.path.append("../../behaviours")
+
+
+from scripts.behaviours.DemoMain.RecognisedObject import RecognisedObject
 from common_action_server_functions import prepare_for_grasp, add_bounding_box_to_octomap, get_bounding_boxes
 from moveit import MoveIt
 

@@ -18,6 +18,15 @@ class GraspMainSub(AbstractBehaviour):
         self.dropped_the_box = False
 
         self.recognised_objects = None
+        self.target_object_name = ''
+
+    def start_grasp(self, item):
+        self.target_object_name = item
+        self.state = State.start
+        self.failure_reason = ''
+
+    def start(self):
+        raise NotImplementedError("Use start pickup!")
 
     def update(self):
         if self.state == State.start:
@@ -51,9 +60,22 @@ class GraspMainSub(AbstractBehaviour):
         elif self.state == State.recognising:
             if self.classification_sub.finished():
                 print("Starting grasping sub behaviour")
-                self.recognised_objects = self.classification_sub.result
-                self.set_state(State.grasping)
-                self.grasp_sub.start()
+                self.recognised_objects = self.classification_sub.result  # TODO do we need it to be class variable?
+                matches = [x for x in self.recognised_objects if (x.class_name == self.target_object_name)]
+                if len(matches) == 1:
+                    target = matches[0]
+                    self.set_state(State.grasping)
+                    self.grasp_sub.start_pickup(target)
+                elif len(matches) > 1:
+                    target = sorted(matches, key=lambda x: x.center_z, reverse=True)
+                    self.set_state(State.grasping)
+                    self.grasp_sub.start_pickup(target)
+                else:
+                    self.failure_reason = 'object_not_found'
+                    print("object_not_found")
+                    self.set_state(State.moving_backwards)
+                    self.move_back_sub.start()
+
             elif self.classification_sub.failed():
                 print("Classification sub behavior failed with reason: %s" % self.classification_sub.failure_reason)
                 print("Start moving backwards sub behaviour")
@@ -81,7 +103,9 @@ class GraspMainSub(AbstractBehaviour):
         # Fails -> for now kill this program
         elif self.state == State.moving_backwards:
             if self.move_back_sub.finished():
-                if self.dropped_the_box:
+                if self.failure_reason:
+                    self.fail(self.failure_reason)
+                elif self.dropped_the_box:
                     print("The main behaviour succeeded:P!")
                     self.finish()
                 else:
@@ -109,4 +133,3 @@ class GraspMainSub(AbstractBehaviour):
                 print("Start moving backwards sub behaviour")
                 self.set_state(State.moving_backwards)
                 self.move_back_sub.start()
-
