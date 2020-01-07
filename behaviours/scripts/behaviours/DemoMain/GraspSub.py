@@ -1,5 +1,7 @@
 import actionlib
+import rospy
 from my_msgs.msg import SimpleAction, SimpleGoal
+from std_msgs.msg import String
 
 from utils.abstractBehaviour import AbstractBehaviour
 from utils.state import State
@@ -13,10 +15,12 @@ class GraspSub(AbstractBehaviour):
         self.client.wait_for_server()
         print 'Connected to grasp_action_server'
         self.recognised_object = None
+        self.text_to_speech_pub = rospy.Publisher('/chatter', String, queue_size=3)
 
     def update(self):
         # When the state is start, send two integers to the action server
         if self.state == State.start:
+            self.text_to_speech_pub.publish("Grasping the {}".format(self.recognised_object.class_name))
             goal = SimpleGoal()
             goal.s = str(self.recognised_object)
             print "Sending %s to action server" % goal.s

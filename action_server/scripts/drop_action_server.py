@@ -19,16 +19,21 @@ class ActionServer(object):
         self.move_it = MoveIt('tiago')
 
     def attempt_drop(self, bounding_box):
-        print("Prepare for drop: clear octomap, move head, move arm to side position")
-        prepare_for_grasp(self.move_it)
+        grasp_position = [.3, .2, bounding_box.height / 2]
+        for height_diff in grasp_position:
+            print("Prepare for drop: clear octomap, move head, move arm to side position")
+            prepare_for_grasp(self.move_it)
 
-        print("Moving arm in position for drop")
+            print("Moving arm in position for drop")
+            success = self.move_it.move_to_drop(
+                x=bounding_box.x,
+                y=bounding_box.y,
+                z=bounding_box.z + height_diff
+            )
 
-        success = self.move_it.move_to_drop(
-            x=bounding_box.x,
-            y=bounding_box.y,
-            z=bounding_box.z + (bounding_box.height / 2)
-        )
+            if success:
+                print("Chose height: {}".format(height_diff))
+                break
 
         result = SimpleResult()
         if success:

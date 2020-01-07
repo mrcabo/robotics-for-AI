@@ -6,4 +6,7 @@ table2:
   pos: {x: -0.068563, y: -0.053043}
 droptable:
   orientation: {x: 0, y: 0, z: 0.999, w: -0.02}
-  pos: {x: -0.013, y: -1.02}
+  pos: {x: -0.010987, y: -1.4349}
+home:
+  orientation: {x: 0, y: 0, z: -0.68346, w: 0.72998}
+  pos: {x: -0.0030379, y: -0.88668}

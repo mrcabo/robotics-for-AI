@@ -73,9 +73,11 @@ class ActionServer(object):
         print("distance = {:.4f}".format(dis))
         return dis
 
-    def get_closest_bounding_box(self, goal_object, bounding_boxes, max_distance=0.03):
+    def get_closest_bounding_box(self, goal_object, bounding_boxes, max_distance=0.02):
         sorted_box_distances = sorted([(box, self.roi_bb_dis(goal_object, box)) for box in bounding_boxes],
                                       key=lambda p: p[1])
+        print("x,y,z,dis")
+        print("\n".join([str((box[0].x, box[0].z, box[0].y, box[1])) for box in sorted_box_distances]))
         filtered_box_distances = filter(lambda p: p[1] < max_distance, sorted_box_distances)
         return filtered_box_distances[0][0] if filtered_box_distances else None
 

@@ -47,7 +47,7 @@ def get_bounding_boxes(get_big_box=True):
     return filter_bounding_boxes(
         bounding_boxes=message.bounding_boxes,
         min_volume=0.0001 if get_big_box else 0.00005,
-        max_volume=0.05 if get_big_box else 0.001
+        max_volume=0.05 if get_big_box else 0.0012
     )
 
 
@@ -66,10 +66,11 @@ def move_head(pitch, yaw):
     return call_service('move_head', MoveHead, pitch, yaw)
 
 
-def prepare_for_grasp(move_it):
+def prepare_for_grasp(move_it, move_to_nav=True):
     call_service('clear_octomap')
     move_head(.6, 0)
     move_head(.6, -1)
     move_head(.6, 1)
     move_head(.6, 0)
-    move_it.tiago_move_to_side_position()
+    if move_to_nav:
+        move_it.tiago_move_to_side_position()

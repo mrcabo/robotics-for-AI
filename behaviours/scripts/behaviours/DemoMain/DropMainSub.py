@@ -20,6 +20,7 @@ class DropMainSub(AbstractBehaviour):
             print("START: Approaching table")
             self.approach_sub.start_approach(0.45)
             self.set_state(State.approach_table)
+            self.dropped_the_box = False
 
         # If in approach_table state we ping the subbehaviour
         # if approach sub succeeds ->  go to grasp or drop according to whether we have a box in hand

@@ -14,9 +14,9 @@ class NavigationSub(AbstractBehaviour):
         # Connect to the action server
         if not hasattr(self, 'client'):
             self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-        print 'Connecting to server'
+        print 'Connecting to move_base'
         self.client.wait_for_server()
-        print 'Connected to the server'
+        print 'Connected to the move_base'
 
         self.pos = None
         self.orientation = None

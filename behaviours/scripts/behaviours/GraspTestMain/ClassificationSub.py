@@ -9,9 +9,9 @@ class ClassificationSub(AbstractBehaviour):
     
     def init(self):
         self.client = actionlib.SimpleActionClient('classification_server', ClassificationActionAction)
-        print 'Connecting to server'
+        print 'Connecting to classification_server'
         self.client.wait_for_server()
-        print 'Connected to the server'
+        print 'Connected to the classification_server'
         self.result = None
 
     def update(self):

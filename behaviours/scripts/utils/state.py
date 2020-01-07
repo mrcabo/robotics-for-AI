@@ -14,3 +14,4 @@ class State(Enum):
     moving_backwards = 9
     navigating = 10
     select_table = 11
+    return_home = 12
