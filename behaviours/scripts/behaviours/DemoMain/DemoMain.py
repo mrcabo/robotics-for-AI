@@ -29,7 +29,8 @@ class DemoMain(AbstractBehaviour):
         self.text_to_speech_pub = rospy.Publisher('/speech', String, queue_size=3)
         self.dropped_items = []
         self.item_in_gripper = None
-
+        
+        rospy.sleep(2)
         self.text_to_speech_pub.publish("Ready to receive a new order")
 
     def start_navigating_to(self, destination):
