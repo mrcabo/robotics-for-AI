@@ -2,8 +2,8 @@ table1:
   orientation: {x: 0, y: 0, z: -0.064222, w: 0.99794}
   pos: {x: 0.50123, y: 0.41235}
 table2:
-  orientation: {x: 0, y: 0, z: -0.74278, w: 0.66953}
-  pos: {x: -0.53446, y: 0.03634}
+  orientation: {x: 0, y: 0, z: -0.77595, w: 0.63079}
+  pos: {x: -0.49809, y: 0.06259}
 droptable:
   orientation: {x: 0, y: 0, z: 0.59169, w: 0.80617}
   pos: {x: -1.6641, y: 0.40359}
