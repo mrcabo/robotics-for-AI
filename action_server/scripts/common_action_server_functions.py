@@ -53,12 +53,13 @@ def get_bounding_boxes(get_big_box=True):
 
 def add_bounding_box_to_octomap(move_it, bounding_box):
     # Add a precise collision box to the octomap
+    box_scale = 1.25
     move_it.add_collision_object(
         x=bounding_box.x,
         y=bounding_box.y,
         z=bounding_box.z,
         rotation=bounding_box.yaw,
-        box_size=[bounding_box.length, bounding_box.width, bounding_box.height]
+        box_size=[bounding_box.length * box_scale, bounding_box.width * box_scale, bounding_box.height * box_scale]
     )
 
 

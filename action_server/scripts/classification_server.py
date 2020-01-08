@@ -18,13 +18,13 @@ class ActionServer(object):
     class_names = ['evergreen', 'whitebox', 'powerbank', 'crazyflie', 'eraser', 'jetson', 'raspberry']  # sim objects
 
     # Real robot
-    # model_path = os.path.join(os.environ['HOME'], 'network_model', '16_8_128_7_convnet_new.h5')
-    # input_size = (64, 64)  # For real robot
+    model_path = os.path.join(os.environ['HOME'], 'network_model', '16_8_128_7_convnet_new.h5')
+    input_size = (64, 64)  # For real robot
     # classes = ["crazyflie", "eraser", "evergreen", "jetson", "powerbank", "raspberry", "whitebox"]
 
     # Simulation only
-    model_path = os.path.join(os.environ['HOME'], 'network_model', 'simulation_model_tas.h5')
-    input_size = (32, 32)
+    # model_path = os.path.join(os.environ['HOME'], 'network_model', 'simulation_model_tas.h5')
+    # input_size = (32, 32)
 
     def __init__(self):
         self.action_server = actionlib.SimpleActionServer(

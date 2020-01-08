@@ -26,7 +26,7 @@ class DemoMain(AbstractBehaviour):
         self.current_target = None
         self.current_destination = None
         self.box_in_hand = False
-        self.text_to_speech_pub = rospy.Publisher('/chatter', String, queue_size=3)
+        self.text_to_speech_pub = rospy.Publisher('/speech', String, queue_size=3)
         self.dropped_items = []
         self.item_in_gripper = None
 

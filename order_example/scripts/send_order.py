@@ -8,7 +8,7 @@ rospy.sleep(2) # Give ros some time to initalize and register the publisher
 order_msg = Order()
 # All the objects
 # order_msg.objects = ["evergreen", "raspberry", "jetson", "crazyflie", "eraser", "whitebox", "powerbank"]
-order_msg.objects = ["evergreen", "jetson", "crazyflie", "eraser", "whitebox", "powerbank"]
+order_msg.objects = ["whitebox", "eraser"]
 # Both tables
 order_msg.tables = ["table1", "table2"]
 # order_msg.tables = ["table2"]

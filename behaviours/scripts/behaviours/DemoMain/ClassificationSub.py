@@ -16,7 +16,7 @@ class ClassificationSub(AbstractBehaviour):
         self.client.wait_for_server()
         print 'Connected to the classification_server'
         self.result = None
-        self.text_to_speech_pub = rospy.Publisher('/chatter', String, queue_size=3)
+        self.text_to_speech_pub = rospy.Publisher('/speech', String, queue_size=3)
 
     def update(self):
         # When the state is start, send start signal to the action server

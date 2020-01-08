@@ -15,7 +15,7 @@ class GraspSub(AbstractBehaviour):
         self.client.wait_for_server()
         print 'Connected to grasp_action_server'
         self.recognised_object = None
-        self.text_to_speech_pub = rospy.Publisher('/chatter', String, queue_size=3)
+        self.text_to_speech_pub = rospy.Publisher('/speech', String, queue_size=3)
 
     def update(self):
         # When the state is start, send two integers to the action server

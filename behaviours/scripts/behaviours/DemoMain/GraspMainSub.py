@@ -92,7 +92,7 @@ class GraspMainSub(AbstractBehaviour):
                     self.move_back_sub.start()
                 else:
                     self.set_state(State.grasping)
-                    self.current_match = self.target_object_names.pop(0)
+                    self.current_match = self.target_object_names[0]
                     self.grasp_sub.start_pickup(self.matches[self.current_match])
 
             elif self.classification_sub.failed():
@@ -113,8 +113,9 @@ class GraspMainSub(AbstractBehaviour):
             elif self.grasp_sub.failed():
                 print("Grasping sub behavior failed with reason: %s" % self.grasp_sub.failure_reason)
                 print("Start moving backwards sub behaviour")
-                if self.grasp_sub.failure_reason == 'no_matching_bounding_box':
+                if self.grasp_sub.failure_reason in {'no_matching_bounding_box', 'NO BOUNDING BOXES'}:
                     self.not_seen_objects.append(self.current_match)
+                    self.target_object_names.pop(0)  # the current match is the first index in the target_object_names
                 self.successful_grasp = False
                 self.set_state(State.moving_backwards)
                 self.move_back_sub.start()
