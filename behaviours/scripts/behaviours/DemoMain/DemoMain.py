@@ -17,7 +17,7 @@ class DemoMain(AbstractBehaviour):
         self.drop_main_sub = self.get_behaviour('DropMainSub')
         self.navigation_sub = self.get_behaviour('NavigationSub')
 
-        with open('/home/group9/catkin_ws/src/behaviours/scripts/behaviours/DemoMain/real_waypoints.yaml', 'r') as f:
+        with open('/home/pal/catkin_ws/src/group9/behaviours/scripts/behaviours/DemoMain/real_waypoints.yaml', 'r') as f:
             self.table_positions = yaml.load(f)
 
         self.target_tables = []
