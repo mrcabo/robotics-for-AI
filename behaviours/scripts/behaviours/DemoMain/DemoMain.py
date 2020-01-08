@@ -137,6 +137,7 @@ class DemoMain(AbstractBehaviour):
                 self.box_in_hand = False
                 if self.item_in_gripper in self.target_items:
                     self.target_items.remove(self.item_in_gripper)
+                    self.dropped_items.append(self.item_in_gripper)
                 self.item_in_gripper = None
                 self.set_state(State.select_table)
             elif self.drop_main_sub.failed():
