@@ -68,7 +68,7 @@ class DemoMain(AbstractBehaviour):
             try:
                 order_msg = rospy.wait_for_message("/order", Order, .5)
                 self.target_items = order_msg.objects
-                self.target_tables = ['droptable'] + order_msg.tables
+                self.target_tables = ['drop table'] + order_msg.tables
                 self.table_observation = [[]] + [None] * len(order_msg.tables)
                 self.current_target = None
                 self.current_destination = None
