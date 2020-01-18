@@ -7,3 +7,5 @@
 *.PNG
 .idea/
 *.npy
+.venv
+venv/
